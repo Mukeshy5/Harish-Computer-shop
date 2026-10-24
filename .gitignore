@@ -1,0 +1,36 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+coverage/
+.runtime/
+*.log
+*.archive
+backups/
+
+# Local build, editor, hosting, and credential state
+dist-ssr/
+tmp/
+temp/
+*.local
+.aws/
+.codex/
+.agents/
+.vercel/
+.netlify/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Database dumps and database engine files stay local
+dump/
+*.bson
+*.wt
+WiredTiger*
+mongod.lock

@@ -1,0 +1,73 @@
+const { describe, it } = require("node:test");
+const assert = require("node:assert/strict");
+const zlib = require("node:zlib");
+const { invoicePdf } = require("../services/invoice-pdf");
+const { serviceBillPdf } = require("../services/service-center-pdf");
+const shop = require("../config/print-shop.json");
+
+// Read the text actually written into the generated PDF page streams.
+function pageText(pdf) {
+  const source = pdf.toString("latin1"), pages = [];
+  for (const match of source.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
+    let content;
+    try { content = zlib.inflateSync(Buffer.from(match[1], "latin1")).toString("latin1"); } catch { continue; }
+    if (!content.includes("BT")) continue;
+    const lines = [];
+    for (const text of content.matchAll(/\[([\s\S]*?)\]\s*TJ/g)) {
+      const bytes = [...text[1].matchAll(/<([0-9a-f]+)>/gi)].map(part => Buffer.from(part[1], "hex"));
+      lines.push(new TextDecoder("windows-1252").decode(Buffer.concat(bytes)));
+    }
+    pages.push(lines.join("\n"));
+  }
+  return pages;
+}
+const invoice = {
+  number: "TEST-PRINT-001", date: "2026-10-24T10:00:00Z", partyName: "Print Test Customer",
+  partyPhone: "9876543210", partyEmail: "print@example.test", partyAddress: "Customer Address",
+  method: "cash", subtotal: 100, discount: 0, tax: 18, charges: 0, total: 118, paid: 100, due: 18,
+  shopSnapshot: { name: "Old shop header", phone: "0000000000", receiptFooter: "Thank you" },
+  lines: [{ name: "Saved Laptop", model: "Saved Model", quantity: 1, rate: 100, taxRate: 18, total: 118, warrantyEnabled: true, warrantyMonths: 12, warrantyDays: 0, warrantyExpiryDate: "2027-10-24" }],
+};
+const service = {
+  number: "TEST-SVC-001", createdAt: "2026-10-24T10:00:00Z", customerName: "Service Test Customer",
+  customerEmail: "service@example.test", customerPhone: "9876543210", customerAddress: "Customer Address",
+  product: "Saved Printer", model: "Saved Service Model", serviceType: "Receive Customer",
+  problem: "Stored printing problem", solution: "Stored repair solution", totalAmount: 1000, paidAmount: 250, pendingAmount: 750,
+};
+function headerIsComplete(text) {
+  for (const value of [shop.name, ...shop.phones, shop.businessTitle, ...shop.services, shop.address, shop.email])
+    assert.ok(text.includes(value), `Missing printed shop detail: ${value}`);
+  assert.ok(text.startsWith(shop.name));
+}
+describe("Generated PDF print layouts", () => {
+  it("prints the common header before saved sale/customer/coverage/payment details", async () => {
+    const pdf = await invoicePdf(invoice), pages = pageText(pdf);
+    assert.equal(pages.length, 1); headerIsComplete(pages[0]);
+    for (const value of [invoice.number, invoice.partyName, invoice.partyPhone, invoice.partyEmail, invoice.partyAddress, "Saved Laptop", "Saved Model", "Coverage", "Expires", "Total amount", "Paid amount", "Pending amount", "118.00", "100.00", "18.00"])
+      assert.ok(pages[0].includes(value), value);
+    assert.ok(!pages[0].includes("Old shop header"));
+  });
+  it("prints the same header before saved service and payment details", async () => {
+    const pages = pageText(await serviceBillPdf(service));
+    assert.equal(pages.length, 1); headerIsComplete(pages[0]);
+    for (const value of [service.number, service.customerName, service.customerEmail, service.customerPhone, service.customerAddress, service.product, service.model, service.serviceType, service.problem, service.solution, "1,000.00", "250.00", "750.00"])
+      assert.ok(pages[0].includes(value), value);
+  });
+  it("preserves the existing shop-received service privacy rule", async () => {
+    const text = pageText(await serviceBillPdf({ ...service, serviceType: "Receive Shop", solution: "INTERNAL ONLY" })).join("\n");
+    assert.ok(text.includes("Receive Shop")); assert.ok(!text.includes("INTERNAL ONLY"));
+  });
+  it("repeats the full header on every page of a long sales invoice", async () => {
+    const lines = Array.from({ length: 60 }, (_, i) => ({ ...invoice.lines[0], name: `Saved item ${i + 1}` }));
+    const pages = pageText(await invoicePdf({ ...invoice, lines }));
+    assert.ok(pages.length > 1);
+    pages.forEach(headerIsComplete);
+    assert.ok(pages.join("\n").includes("Saved item 60"));
+    assert.ok(pages.at(-1).includes("Pending amount"));
+  });
+  it("keeps long service descriptions and final totals across pages", async () => {
+    const pages = pageText(await serviceBillPdf({ ...service, customerAddress: "Long customer address ".repeat(40), problem: "Stored diagnostic detail ".repeat(90), solution: "Stored repair detail ".repeat(100) }));
+    assert.ok(pages.length > 1); pages.forEach(headerIsComplete);
+    assert.ok(pages.at(-1).includes("Pending amount"));
+  });
+});

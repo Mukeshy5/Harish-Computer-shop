@@ -1,0 +1,21 @@
+node_modules/
+
+# Environment and local runtime state
+.env
+.env.*
+!.env.example
+.runtime/
+backups/
+
+# Logs, reports, and generated artifacts
+coverage/
+*.log
+*.archive
+tmp/
+temp/
+
+# Local editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
