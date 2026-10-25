@@ -61,12 +61,14 @@ export function Modal({ title, children, onClose, wide = false }) {
   closeRef.current = onClose;
   useEffect(() => {
     const previous = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     ref.current?.focus();
     const key = (e) => {
       if (e.key === "Escape") closeRef.current();
       if (e.key === "Tab") {
         const all = ref.current?.querySelectorAll(
-          "button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]",
+          'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])',
         );
         const first = all?.[0],
           last = all?.[all.length - 1];
@@ -81,6 +83,7 @@ export function Modal({ title, children, onClose, wide = false }) {
     };
     document.addEventListener("keydown", key);
     return () => {
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", key);
       previous?.focus();
     };
@@ -140,9 +143,9 @@ export function State({ loading, error, empty, retry }) {
     );
   return null;
 }
-export function Table({ columns, rows = [], onRow }) {
+export function Table({ columns, rows = [], onRow, label = "Records" }) {
   return (
-    <div className="m-table-wrap">
+    <div className="m-table-wrap" role="region" aria-label={`${label}: scroll horizontally to view all columns`} tabIndex={0}>
       <table className="m-table">
         <thead>
           <tr>
@@ -159,7 +162,7 @@ export function Table({ columns, rows = [], onRow }) {
               className={onRow ? "clickable" : ""}
             >
               {columns.map((c) => (
-                <td key={c.key}>
+                <td key={c.key} data-label={c.label}>
                   {c.render ? c.render(row) : (row[c.key] ?? "—")}
                 </td>
               ))}

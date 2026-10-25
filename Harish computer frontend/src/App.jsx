@@ -108,7 +108,7 @@ function App() {
   if (location.pathname === '/app' || location.pathname.startsWith('/app/')) return <Routes><Route path="/app/*" element={<Management />} /></Routes>
   return (
     <div className="site-shell">
-      <Navbar />
+      <Navbar key={location.pathname} />
       <main>
         <Routes>
           <Route path="/" element={<Home />} />

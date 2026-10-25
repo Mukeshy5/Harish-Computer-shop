@@ -366,6 +366,33 @@ describe("Admin sell workspace", () => {
     open("/app/pos");
     expect((await screen.findByRole("option", { name: /Test SSD.*Out of stock/ })).disabled).toBe(true);
   });
+  it("supports tablet navigation without leaving hidden links or background content focusable", async () => {
+    const listeners = new Set();
+    const media = { matches: true, addEventListener: (_event, listener) => listeners.add(listener), removeEventListener: (_event, listener) => listeners.delete(listener) };
+    vi.spyOn(window, "matchMedia").mockReturnValue(media);
+    const user = userEvent.setup();
+    open("/app/pos");
+    await screen.findByRole("heading", { name: "Point of sale" });
+    const sidebar = document.querySelector(".m-sidebar");
+    const button = screen.getByRole("button", { name: "Open navigation" });
+    expect(sidebar.hasAttribute("inert")).toBe(true);
+    await user.click(button);
+    expect(sidebar.hasAttribute("inert")).toBe(false);
+    expect(document.querySelector(".m-workarea").hasAttribute("inert")).toBe(true);
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(document.activeElement.getAttribute("aria-label")).toBe("Close navigation");
+    await user.keyboard("{Escape}");
+    expect(sidebar.hasAttribute("inert")).toBe(true);
+    expect(document.body.style.overflow).toBe("");
+    expect(document.activeElement).toBe(button);
+    await user.click(button);
+    await user.click(within(sidebar).getByRole("link", { name: "Sales history" }));
+    await screen.findByRole("heading", { name: "Sales invoices" });
+    expect(sidebar.hasAttribute("inert")).toBe(true);
+    act(() => { media.matches = false; listeners.forEach(listener => listener()); });
+    expect(sidebar.hasAttribute("inert")).toBe(false);
+    expect(sidebar.getAttribute("aria-hidden")).toBeNull();
+  });
   it("opens saved sales invoices from the sales history", async () => {
     open(`/app/sales/${invoice._id}`);
     await screen.findByRole("heading", { name: invoice.number, level: 1 });

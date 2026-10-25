@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   Navigate,
   NavLink,
@@ -40,6 +40,7 @@ import { Inventory, Adjustment, StockCount } from "./pages/Inventory";
 import { SettingsPage, Profile } from "./pages/Settings";
 import "./management.css";
 import DeveloperCredit from "../components/DeveloperCredit";
+import { useMediaQuery } from "./useMediaQuery";
 const Session = createContext(null);
 export const useSession = () => useContext(Session);
 const nav = [
@@ -319,11 +320,45 @@ function Shell() {
     .map(([label, items]) => [label, items.filter((n) => can(n[3]))])
     .filter(([, items]) => items.length);
   const [open, setOpen] = useState(false);
+  const mobile = useMediaQuery("(max-width: 1024px)");
+  const menuButton = useRef(null);
+  const sidebar = useRef(null);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const alerts = useData("/inventory/low-stock", { limit: 1 }, true);
-  useEffect(() => setOpen(false), [location.pathname]);
+  useEffect(() => setOpen(false), [location.pathname, mobile]);
+  useEffect(() => {
+    if (!mobile || !open) return;
+    const previousOverflow = document.body.style.overflow;
+    const opener = menuButton.current;
+    document.body.style.overflow = "hidden";
+    sidebar.current?.querySelector("button")?.focus();
+    const keyboard = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+      }
+      if (event.key === "Tab") {
+        const controls = sidebar.current?.querySelectorAll("a[href], button:not([disabled])");
+        const first = controls?.[0];
+        const last = controls?.[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", keyboard);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", keyboard);
+      opener?.focus();
+    };
+  }, [mobile, open]);
   const signOut = async () => {
     try {
       await api.post("/auth/logout");
@@ -335,9 +370,18 @@ function Shell() {
   return (
     <div className="m-shell">
       {open && (
-        <div className="m-sidebar-shade" onClick={() => setOpen(false)} />
+        <button type="button" className="m-sidebar-shade" aria-label="Close navigation backdrop" onClick={() => setOpen(false)} />
       )}
-      <aside className={`m-sidebar ${open ? "open" : ""}`}>
+      <aside
+        id="admin-navigation"
+        ref={sidebar}
+        className={`m-sidebar ${open ? "open" : ""}`}
+        inert={mobile && !open}
+        aria-hidden={mobile && !open ? true : undefined}
+        role={mobile ? "dialog" : undefined}
+        aria-modal={mobile && open ? true : undefined}
+        aria-label="Shop navigation"
+      >
         <div className="m-sidebar-brand">
           <Brand />
           <button
@@ -393,11 +437,14 @@ function Shell() {
           </NavLink>
         </div>
       </aside>
-      <div className="m-workarea">
+      <div className="m-workarea" inert={mobile && open}>
         <header className="m-topbar">
           <button
             className="m-icon-button m-menu"
+            ref={menuButton}
             aria-label="Open navigation"
+            aria-controls="admin-navigation"
+            aria-expanded={mobile && open}
             onClick={() => setOpen(true)}
           >
             <Menu />

@@ -551,8 +551,8 @@ export function Billing({ kind }) {
                 <tbody>
                   {computed.map((l, i) => (
                     <Fragment key={l.product}>
-                      <tr>
-                        <td>
+                      <tr className="m-cart-item-row">
+                        <td data-label="Product">
                           <strong>{l.name}</strong>
                           <small>
                             {[
@@ -567,7 +567,7 @@ export function Billing({ kind }) {
                               .join(" · ")}
                           </small>
                         </td>
-                        <td>
+                        <td data-label="Quantity">
                           <div className="m-quantity-control">
                             <button
                               type="button"
@@ -601,7 +601,7 @@ export function Billing({ kind }) {
                             </button>
                           </div>
                         </td>
-                        <td>
+                        <td data-label="Rate ₹">
                           <input
                             aria-label={`Rate for ${l.name}`}
                             disabled={!purchase && user.role !== "admin"}
@@ -614,7 +614,7 @@ export function Billing({ kind }) {
                             onChange={(e) => change(i, "rate", e.target.value)}
                           />
                         </td>
-                        <td>
+                        <td data-label="Discount ₹">
                           <input
                             aria-label={`Discount for ${l.name}`}
                             required
@@ -628,7 +628,7 @@ export function Billing({ kind }) {
                             }
                           />
                         </td>
-                        <td>
+                        <td data-label="GST">
                           {purchase ? (
                             <input
                               aria-label={`GST for ${l.name}`}
@@ -646,10 +646,10 @@ export function Billing({ kind }) {
                             l.taxRate + "%"
                           )}
                         </td>
-                        <td>
+                        <td data-label="Amount">
                           <strong>{money(l.total)}</strong>
                         </td>
-                        <td>
+                        <td className="m-cart-remove">
                           <button
                             type="button"
                             className="m-icon-button"

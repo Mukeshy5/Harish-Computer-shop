@@ -44,7 +44,7 @@ export default function Products() {
             <h2>Find your <em className="text-gradient">fit.</em></h2>
             <p className="heading-note">Availability and specifications confirmed at purchase.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map(([title, text, icon, img], index) => (
               <Reveal key={title} delay={index * 70}><Link to="/contact" className="card product-card-animated group block h-full">
                 <div className="relative overflow-hidden rounded-[var(--radius)] border border-[var(--line)] h-48 mb-5">
@@ -69,7 +69,7 @@ export default function Products() {
             <p className="eyebrow"><span /> Popular picks</p>
             <h2>Featured <em className="text-gradient">products.</em></h2>
           </div>
-          <div className="grid sm:grid-cols-4 gap-3 border-t border-[var(--line)] border-l [border-color:var(--line)]">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 border-t border-[var(--line)] border-l [border-color:var(--line)]">
             {featured.map((item, index) => (
               <Link key={item} to="/contact" className="flex flex-col gap-3 py-6 px-4 border-r border-b border-[var(--line)] hover:bg-white transition-colors group">
                 <span className="text-[10px] uppercase tracking-widest font-bold text-[var(--gold-dark)]">0{index + 1}</span>

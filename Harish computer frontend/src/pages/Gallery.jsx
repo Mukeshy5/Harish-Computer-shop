@@ -41,7 +41,7 @@ export default function Gallery() {
               </button>
             ))}
           </div>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {gallery.map(([title, img], index) => (
               <Reveal key={title} delay={index * 55}><div className="card gallery-card-animated group overflow-hidden">
                 <div className="relative h-48 overflow-hidden">
