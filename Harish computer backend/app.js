@@ -14,6 +14,7 @@ const { invoicePdf } = require("./services/invoice-pdf");
 const serviceCenter = require("./services/service-center");
 const { serviceBillPdf } = require("./services/service-center-pdf");
 const printShop = require("./config/print-shop.json");
+const deployment = require("./config/deployment.json");
 const { report, dateRange } = require("./services/reports");
 const { settleOpening } = require("./services/accounts");
 const { contact, imageUrl } = require("./validators/records");
@@ -41,11 +42,24 @@ app.param("id", (req, _res, next, id) => {
   next();
 });
 if (process.env.TRUST_PROXY === "1") app.set("trust proxy", 1);
-const origins = (process.env.CLIENT_URL || "http://localhost:5173")
-  .split(",")
-  .map((s) => s.trim());
+const origins = [
+  ...new Set([
+    deployment.frontendOrigin,
+    ...(
+      process.env.CLIENT_URL ||
+      (process.env.NODE_ENV === "production" ? "" : "http://localhost:5173")
+    )
+      .split(",")
+      .map((s) => s.trim().replace(/\/+$/, ""))
+      .filter(Boolean),
+  ]),
+];
 app.use(helmet());
 app.use(cors({ origin: origins, credentials: true }));
+app.use("/api", (_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 app.use(express.json({ limit: "256kb" }));
 app.use(cookieParser());
 app.use(

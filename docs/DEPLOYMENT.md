@@ -35,6 +35,18 @@ server {
 
 This repository is prepared for Node/MongoDB hosting; it is not deployed to a cloud account by the setup scripts. Cloudflare Sites Workers do not run this Express/MongoDB TCP backend, so the existing MERN checkout is kept as a local/server-hosted project.
 
+## Vercel frontend and Render backend
+
+The production frontend is `https://harish673464iwidjd.vercel.app` and its backend is `https://harish-computer-shop.onrender.com`.
+
+Vercel uses the committed `Harish computer frontend/vercel.json` to forward `/api/:path*` to the same path on Render, before falling back to the React application. The browser calls `/api` on the Vercel domain, so the existing HttpOnly, Secure, SameSite=Lax login cookie stays on the frontend origin. API responses bypass proxy caching. See [Vercel external rewrites](https://vercel.com/docs/routing/rewrites).
+
+1. In Vercel, use root directory `Harish computer frontend`, build command `npm run build`, and output directory `dist`. Set `VITE_API_URL=/api` for Production. Redeploy after changing build environment variables.
+2. In Render, use root directory `Harish computer backend`, build command `npm ci --omit=dev`, start command `npm start`, and health check path `/api/health`. Keep the existing `MONGODB_URI` and `JWT_SECRET`. Set `CLIENT_URL=https://harish673464iwidjd.vercel.app` and `NODE_ENV=production`. Render supplies `PORT` automatically. Configure `TRUST_PROXY` to match the trusted proxy boundary.
+3. The backend explicitly allows this frontend in `config/deployment.json`. Additional exact origins can be supplied as a comma-separated `CLIENT_URL`; trailing slashes are normalized. Other origins remain rejected for writes.
+4. In Atlas, allow the Render service's outbound IP ranges and wait for the access-list entries to become Active. Find the ranges in Render's **Connect > Outbound** tab; see [Render outbound IPs](https://render.com/docs/outbound-ip-addresses) and [Atlas IP access list](https://www.mongodb.com/docs/atlas/security/ip-access-list/).
+5. Deploy the backend and frontend changes. Both `https://harish-computer-shop.onrender.com/api/health` and `https://harish673464iwidjd.vercel.app/api/health` must return JSON with `status: "ok"` and `storage: "transactions"`. If the frontend endpoint returns HTML, its API rewrite has not been deployed. Then verify admin sign-in, refresh, and logout on the Vercel domain.
+
 ## Backups
 
 Install MongoDB Database Tools and use `mongodump`/`mongorestore` (separate tools from the MongoDB server). Keep backups encrypted and outside the web root/source checkout, restrict access, and test restoration to a separate database. Never publish database archives to source control.
