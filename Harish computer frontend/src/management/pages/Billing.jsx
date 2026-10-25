@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Plus,
+  Minus,
   Trash2,
   Package,
   ShoppingCart,
@@ -16,6 +17,8 @@ import {
 } from "lucide-react";
 import { useSession } from "../Management";
 import { ShopHeader } from "../print/ShopHeader";
+import { useA4PrintFit } from "../print/useA4PrintFit";
+import "../print/invoice-print.css";
 import {
   api,
   date,
@@ -86,7 +89,7 @@ export function Billing({ kind }) {
   const searchRef = useRef(null);
   const products = useData("/products", { q, active: true, limit: 50 });
   const categories = useData("/categories", { limit: 100, active: true });
-  const parties = useData(purchase ? "/suppliers" : "/customers", {
+  const parties = useData(purchase ? "/suppliers" : null, {
     q: partyQ,
     limit: 100,
   });
@@ -182,6 +185,11 @@ export function Billing({ kind }) {
           product: p._id,
           name: p.name,
           sku: p.sku,
+          barcode: p.barcode || "",
+          companyName: p.companyName || "",
+          description: p.description || "",
+          unit: p.unit || "piece",
+          sellingPrice: p.sellingPrice,
           stock: p.stock,
           quantity: 1,
           rate: purchase ? (p.purchasePrice ?? p.sellingPrice) : p.sellingPrice,
@@ -210,6 +218,20 @@ export function Billing({ kind }) {
   const change = (i, k, v) =>
     setLines((old) =>
       old.map((l, index) => (index === i ? { ...l, [k]: v } : l)),
+    );
+  const changeQuantity = (i, delta) =>
+    setLines((old) =>
+      old.map((line, index) =>
+        index === i
+          ? {
+              ...line,
+              quantity: Math.min(
+                purchase ? 1e8 : line.stock,
+                Math.max(1, (Number(line.quantity) || 1) + delta),
+              ),
+            }
+          : line,
+      ),
     );
   const preview = invoicePreview(lines, form.invoiceDiscount, form.charges);
   const { lines: computed, subtotal, lineDiscount, tax, total } = preview;
@@ -309,12 +331,18 @@ export function Billing({ kind }) {
         <section className="m-card m-billing-main">
           <div className="m-billing-party">
             <div className="m-billing-party-heading">
-              <h3>
-                {purchase
-                  ? "Supplier billing details"
-                  : "Customer billing details"}
-              </h3>
-              {canManageContacts && (
+              <div>
+                <span className="m-eyebrow">01 · BILLING DETAILS</span>
+                <h3>
+                  {purchase
+                    ? "Supplier billing details"
+                    : "Customer billing details"}
+                </h3>
+                {!purchase && (
+                  <p>Enter customer details directly on this bill.</p>
+                )}
+              </div>
+              {purchase && canManageContacts && (
                 <Button
                   type="button"
                   variant="secondary"
@@ -324,35 +352,29 @@ export function Billing({ kind }) {
                 </Button>
               )}
             </div>
-            <div className="m-party-chooser">
-              <Field
-                label={purchase ? "Search suppliers" : "Search customers"}
-                value={partyQ}
-                onChange={(e) => setPartyQ(e.target.value)}
-                placeholder="Name, phone or email"
-              />
-              <Select
-                label={purchase ? "Supplier" : "Customer"}
-                options={partyOptions}
-                disabled={parties.loading && !partyOptions.length}
-                value={form.party}
-                onChange={(e) => chooseContact(e.target.value)}
-                required={purchase}
-              />
-            </div>
-            <State error={parties.error} retry={parties.reload} />
+            {purchase && (
+              <>
+                <div className="m-party-chooser">
+                  <Field
+                    label={purchase ? "Search suppliers" : "Search customers"}
+                    value={partyQ}
+                    onChange={(e) => setPartyQ(e.target.value)}
+                    placeholder="Name, phone or email"
+                  />
+                  <Select
+                    label={purchase ? "Supplier" : "Customer"}
+                    options={partyOptions}
+                    disabled={parties.loading && !partyOptions.length}
+                    value={form.party}
+                    onChange={(e) => chooseContact(e.target.value)}
+                    required={purchase}
+                  />
+                </div>
+                <State error={parties.error} retry={parties.reload} />
+              </>
+            )}
             <State error={categories.error} retry={categories.reload} />
-            <div className="m-form-grid">
-              <Field
-                label={
-                  purchase ? "Purchase date" : "Sale / coverage start date"
-                }
-                type="date"
-                value={form.date}
-                onChange={field("date")}
-                required
-                max={today()}
-              />
+            <div className="m-form-grid m-billing-customer-fields">
               <Field
                 label={purchase ? "Supplier name" : "Customer name"}
                 value={form.partyName}
@@ -373,12 +395,31 @@ export function Billing({ kind }) {
                 required={!purchase}
               />
               <Field
-                label="Gmail / email"
+                label="Email"
                 type="email"
                 value={form.partyEmail}
                 onChange={field("partyEmail")}
                 placeholder="name@gmail.com"
                 maxLength={254}
+              />
+              <Field
+                label="Address"
+                type="textarea"
+                value={form.partyAddress}
+                onChange={field("partyAddress")}
+                placeholder="Enter billing address"
+                maxLength={2000}
+                rows={2}
+              />
+              <Field
+                label={
+                  purchase ? "Purchase date" : "Sale / coverage start date"
+                }
+                type="date"
+                value={form.date}
+                onChange={field("date")}
+                required
+                max={today()}
               />
               <Field
                 label="GST number"
@@ -391,14 +432,6 @@ export function Billing({ kind }) {
                 }
                 placeholder="GSTIN (optional)"
                 maxLength={15}
-              />
-              <Field
-                label="Address"
-                type="textarea"
-                value={form.partyAddress}
-                onChange={field("partyAddress")}
-                placeholder="Enter billing address"
-                maxLength={2000}
               />
               {purchase && (
                 <Field
@@ -416,12 +449,29 @@ export function Billing({ kind }) {
           )}
           <div className="m-card-heading">
             <div>
+              <span className="m-eyebrow">02 · PRODUCTS</span>
               <h3>{purchase ? "Receive products" : "Build your invoice"}</h3>
               <p>Search by name, product code, or barcode · Alt + S</p>
             </div>
             <Badge tone="blue">{lines.length} items</Badge>
           </div>
           <div className="m-pos-search">
+            <Select
+              label="Select product"
+              value=""
+              onChange={(e) => {
+                const product = products.data?.data.find(
+                  (p) => p._id === e.target.value,
+                );
+                if (product) add(product);
+              }}
+              disabled={products.loading && !products.data}
+              options={(products.data?.data || []).map((p) => ({
+                value: p._id,
+                label: `${p.name} · ${p.sku} · ${money(purchase ? (p.purchasePrice ?? p.sellingPrice) : p.sellingPrice)}${!purchase && !p.stock ? " · Out of stock" : ""}`,
+                disabled: !purchase && !p.stock,
+              }))}
+            />
             <SearchBox
               value={q}
               onChange={setQ}
@@ -482,7 +532,7 @@ export function Billing({ kind }) {
                 <ShoppingCart size={34} />
               </span>
               <h3>Ready for your first item</h3>
-              <p>Search for a product above to add it to this invoice.</p>
+              <p>Select a product above or search by name, code or barcode.</p>
             </div>
           ) : (
             <div className="m-table-wrap">
@@ -518,18 +568,38 @@ export function Billing({ kind }) {
                           </small>
                         </td>
                         <td>
-                          <input
-                            aria-label={`Quantity for ${l.name}`}
-                            required
-                            type="number"
-                            min="1"
-                            max={purchase ? 1e8 : l.stock}
-                            step="1"
-                            value={l.quantity}
-                            onChange={(e) =>
-                              change(i, "quantity", e.target.value)
-                            }
-                          />
+                          <div className="m-quantity-control">
+                            <button
+                              type="button"
+                              aria-label={`Decrease quantity for ${l.name}`}
+                              disabled={Number(l.quantity) <= 1}
+                              onClick={() => changeQuantity(i, -1)}
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <input
+                              aria-label={`Quantity for ${l.name}`}
+                              required
+                              type="number"
+                              min="1"
+                              max={purchase ? 1e8 : l.stock}
+                              step="1"
+                              value={l.quantity}
+                              onChange={(e) =>
+                                change(i, "quantity", e.target.value)
+                              }
+                            />
+                            <button
+                              type="button"
+                              aria-label={`Increase quantity for ${l.name}`}
+                              disabled={
+                                Number(l.quantity) >= (purchase ? 1e8 : l.stock)
+                              }
+                              onClick={() => changeQuantity(i, 1)}
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
                         </td>
                         <td>
                           <input
@@ -594,6 +664,32 @@ export function Billing({ kind }) {
                       </tr>
                       <tr className="m-line-details-row">
                         <td colSpan={7}>
+                          <dl
+                            className="m-selected-product-details"
+                            aria-label={`Product details for ${l.name}`}
+                          >
+                            {[
+                              ["Product code", l.sku],
+                              ["Barcode", l.barcode],
+                              ["Category", l.categoryName],
+                              ["Company", l.companyName],
+                              ["Size", l.size],
+                              ["Colour", l.colour],
+                              ["Selling price", money(l.sellingPrice)],
+                              ["GST", `${l.taxRate}%`],
+                              ["Available stock", `${l.stock} ${l.unit}`],
+                              ["Description", l.description],
+                            ]
+                              .filter(
+                                ([, value]) => value !== "" && value != null,
+                              )
+                              .map(([label, value]) => (
+                                <div key={label}>
+                                  <dt>{label}</dt>
+                                  <dd>{value}</dd>
+                                </div>
+                              ))}
+                          </dl>
                           <div className="m-line-details">
                             <Field
                               label="Product type"
@@ -712,7 +808,10 @@ export function Billing({ kind }) {
         </section>
         <aside className="m-card m-checkout">
           <div className="m-card-heading">
-            <h3>Bill summary & payment</h3>
+            <div>
+              <span className="m-eyebrow">03 · CHECKOUT</span>
+              <h3>Bill summary & payment</h3>
+            </div>
           </div>
           <div className="m-checkout-body">
             <div className="m-bill-totals">
@@ -792,7 +891,8 @@ export function Billing({ kind }) {
               <div className="m-credit-approval">
                 {!form.party && (
                   <p>
-                    Select or add a saved customer to track the pending amount.
+                    The pending amount will be linked to the customer details
+                    entered on this bill.
                   </p>
                 )}
                 {user.role === "admin" &&
@@ -861,7 +961,7 @@ export function Billing({ kind }) {
           </div>
         </aside>
       </form>
-      {contactDialog && (
+      {purchase && contactDialog && (
         <BillingContactForm
           kind={kind}
           initial={form}
@@ -1241,6 +1341,7 @@ export function Invoice({ kind }) {
     [thermal, setThermal] = useState(false),
     [emailBusy, setEmailBusy] = useState(false);
   const printRequested = useRef(false);
+  const invoiceRef = useA4PrintFit(thermal);
   const emailAttemptKey = useRef(null);
   useEffect(() => {
     printRequested.current = false;
@@ -1399,9 +1500,12 @@ export function Invoice({ kind }) {
       <style media="print">
         {thermal
           ? "@page { size: 80mm 297mm; margin: 4mm; }"
-          : "@page { size: A4; margin: 14mm; }"}
+          : "@page { size: A4 portrait; margin: 10mm; }"}
       </style>
-      <article className={`m-card m-invoice ${thermal ? "thermal" : ""}`}>
+      <article
+        ref={invoiceRef}
+        className={`m-card m-invoice ${thermal ? "thermal" : ""}`}
+      >
         <ShopHeader details={b.printShop} gstin={shop.gstin} logo={shop.logo} />
         <div className="m-invoice-top m-invoice-document-meta">
           <div>
@@ -1483,11 +1587,6 @@ export function Invoice({ kind }) {
             },
             { key: "taxRate", label: "GST", render: (l) => `${l.taxRate}%` },
             { key: "total", label: "AMOUNT", render: (l) => money(l.total) },
-            {
-              key: "warranty",
-              label: "GUARANTEE / WARRANTY",
-              render: (l) => coverageText(l),
-            },
           ]}
         />
         <div className="m-invoice-summary">

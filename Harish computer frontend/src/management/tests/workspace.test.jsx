@@ -310,6 +310,62 @@ describe("Admin sell workspace", () => {
     },
   );
 
+  it("completes a sale with inline customer details, selected product and stock-bounded quantity controls", async () => {
+    const user = userEvent.setup();
+    open("/app/pos");
+    await screen.findByRole("heading", { name: "Point of sale" });
+    expect(screen.queryByRole("button", { name: /Add customer/i })).toBeNull();
+    expect(screen.queryByLabelText("Search customers")).toBeNull();
+    await user.type(screen.getByLabelText(/Customer name/), "Inline Buyer");
+    await user.type(screen.getByLabelText(/Phone number/), "9876543210");
+    await user.type(screen.getByLabelText(/^Email$/), "inline@example.test");
+    await user.type(screen.getByLabelText("Address"), "Shop Street");
+    await screen.findByRole("option", { name: /Test SSD · TEST-SSD/ });
+    await user.selectOptions(screen.getByLabelText("Select product"), product._id);
+    const details = screen.getByLabelText("Product details for Test SSD");
+    for (const value of [product.sku, product.barcode, product.companyName, product.size, product.colour, "5 piece", "18%"])
+      expect(details.textContent).toContain(value);
+    expect(screen.getByLabelText("Model for Test SSD").value).toBe(product.model);
+    const quantity = screen.getByLabelText("Quantity for Test SSD");
+    const increase = screen.getByRole("button", { name: "Increase quantity for Test SSD" });
+    const decrease = screen.getByRole("button", { name: "Decrease quantity for Test SSD" });
+    expect(decrease.disabled).toBe(true);
+    for (let i = 0; i < 4; i++) await user.click(increase);
+    expect(quantity.value).toBe("5");
+    expect(increase.disabled).toBe(true);
+    await user.click(decrease);
+    expect(quantity.value).toBe("4");
+    await user.click(screen.getByRole("button", { name: "Review & complete sale" }));
+    await user.click(await screen.findByRole("button", { name: "Confirm & save" }));
+    await waitFor(() => expect(api.request).toHaveBeenCalledWith(expect.objectContaining({
+      method: "post", url: "/sales", data: expect.objectContaining({
+        party: undefined, partyName: "Inline Buyer", partyPhone: "9876543210",
+        partyEmail: "inline@example.test", partyAddress: "Shop Street",
+        lines: [expect.objectContaining({ product: product._id, quantity: 4 })],
+      }),
+    })));
+    expect(api.get.mock.calls.some(([path]) => path === "/customers")).toBe(false);
+  });
+  it("allows pending checkout using the same inline billing details", async () => {
+    const user = userEvent.setup();
+    open("/app/pos");
+    await user.type(await screen.findByLabelText(/Customer name/), "Credit Buyer");
+    await user.type(screen.getByLabelText(/Phone number/), "9876543210");
+    await screen.findByRole("option", { name: /Test SSD · TEST-SSD/ });
+    await user.selectOptions(screen.getByLabelText("Select product"), product._id);
+    await user.selectOptions(screen.getByLabelText(/Payment method/), "credit");
+    expect(screen.getByLabelText("Pending amount").textContent).toContain("354.00");
+    await user.click(screen.getByRole("button", { name: "Review & complete sale" }));
+    await user.click(await screen.findByRole("button", { name: "Confirm & save" }));
+    await waitFor(() => expect(api.request).toHaveBeenCalledWith(expect.objectContaining({
+      url: "/sales", data: expect.objectContaining({ partyName: "Credit Buyer", method: "credit", paid: 0 }),
+    })));
+  });
+  it("disables out-of-stock product selection", async () => {
+    catalogRecords = [{ ...product, stock: 0 }];
+    open("/app/pos");
+    expect((await screen.findByRole("option", { name: /Test SSD.*Out of stock/ })).disabled).toBe(true);
+  });
   it("opens saved sales invoices from the sales history", async () => {
     open(`/app/sales/${invoice._id}`);
     await screen.findByRole("heading", { name: invoice.number, level: 1 });

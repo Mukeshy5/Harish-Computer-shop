@@ -57,13 +57,16 @@ describe("Generated PDF print layouts", () => {
     const text = pageText(await serviceBillPdf({ ...service, serviceType: "Receive Shop", solution: "INTERNAL ONLY" })).join("\n");
     assert.ok(text.includes("Receive Shop")); assert.ok(!text.includes("INTERNAL ONLY"));
   });
-  it("repeats the full header on every page of a long sales invoice", async () => {
-    const lines = Array.from({ length: 60 }, (_, i) => ({ ...invoice.lines[0], name: `Saved item ${i + 1}` }));
-    const pages = pageText(await invoicePdf({ ...invoice, lines }));
-    assert.ok(pages.length > 1);
-    pages.forEach(headerIsComplete);
-    assert.ok(pages.join("\n").includes("Saved item 60"));
-    assert.ok(pages.at(-1).includes("Pending amount"));
+  for (const count of [12, 30, 100]) it(`fits all ${count} sale lines and final totals on one A4 page`, async () => {
+    const lines = Array.from({ length: count }, (_, i) => ({ ...invoice.lines[0], name: `Saved item ${i + 1}` }));
+    const pdf = await invoicePdf({ ...invoice, lines, notes: "Keep these notes ".repeat(70) });
+    const pages = pageText(pdf);
+    assert.equal(pages.length, 1);
+    headerIsComplete(pages[0]);
+    for (let i = 1; i <= count; i++) assert.ok(pages[0].includes(`Saved item ${i}`));
+    for (const value of ["Keep these notes", "Pending amount", "Authorized signature", "Thank you"])
+      assert.ok(pages[0].includes(value), value);
+    assert.match(pdf.toString("latin1"), /\/MediaBox \[0 0 595\.28 841\.89\]/);
   });
   it("keeps long service descriptions and final totals across pages", async () => {
     const pages = pageText(await serviceBillPdf({ ...service, customerAddress: "Long customer address ".repeat(40), problem: "Stored diagnostic detail ".repeat(90), solution: "Stored repair detail ".repeat(100) }));

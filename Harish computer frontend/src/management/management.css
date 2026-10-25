@@ -1199,6 +1199,72 @@
   gap: 18px;
   margin-bottom: 18px;
 }
+.m-billing-party-heading h3 {
+  margin-top: 6px;
+}
+.m-billing-party-heading p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--m-muted);
+}
+.m-billing-customer-fields {
+  align-items: start;
+}
+.m-billing-customer-fields textarea {
+  min-height: 76px;
+}
+.m-quantity-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--m-line);
+  border-radius: 7px;
+  background: #fff;
+  overflow: hidden;
+}
+.m-quantity-control button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: #f1f5fb;
+  color: #255fce;
+}
+.m-quantity-control button:disabled {
+  opacity: .4;
+  cursor: default;
+}
+.m-cart .m-quantity-control input {
+  width: 48px;
+  border: 0;
+  border-radius: 0;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.m-quantity-control input::-webkit-inner-spin-button,
+.m-quantity-control input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.m-selected-product-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 14px 20px;
+  margin: 0 0 18px;
+}
+.m-selected-product-details dt {
+  color: var(--m-muted);
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.m-selected-product-details dd {
+  color: var(--m-ink);
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
 .m-table.m-cart .m-line-details-row > td {
   background: #f8faff;
   padding: 14px 20px 20px !important;
@@ -1410,11 +1476,14 @@
 }
 .m-pos-search {
   margin: 0 20px 20px;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
   gap: 10px;
 }
 .m-pos-search .m-search {
   max-width: none;
+  width: 100%;
 }
 .m-focus-helper {
   max-width: 170px !important;
@@ -1677,6 +1746,11 @@
   border-top: 1px solid var(--m-line);
   padding-top: 25px;
   margin-top: 30px;
+}
+@media (max-width: 700px) {
+  .m-billing-main .m-pos-search {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .m-history-section {
   margin-top: 23px;

@@ -31,6 +31,27 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 describe("Sell and service print controls", () => {
+  it("fits a tall A4 invoice before native printing and restores the preview afterwards", async () => {
+    const user = userEvent.setup();
+    open("/app/sales/" + sale._id);
+    await screen.findByRole("heading", { name: sale.number, level: 1 });
+    const article = document.querySelector(".m-invoice");
+    Object.defineProperty(article, "scrollHeight", { configurable: true, value: 2400 });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ height: 1043, width: 718 });
+    window.dispatchEvent(new Event("beforeprint"));
+    const scale = Number(article.style.getPropertyValue("--invoice-print-scale"));
+    expect(scale).toBeGreaterThan(0);
+    expect(2400 * scale).toBeLessThanOrEqual(1043);
+    window.dispatchEvent(new Event("afterprint"));
+    expect(article.style.getPropertyValue("--invoice-print-scale")).toBe("");
+    Object.defineProperty(article, "scrollHeight", { configurable: true, value: 700 });
+    window.dispatchEvent(new Event("beforeprint"));
+    expect(article.style.getPropertyValue("--invoice-print-scale")).toBe("1");
+    window.dispatchEvent(new Event("afterprint"));
+    await user.selectOptions(screen.getByLabelText("Receipt format"), "thermal");
+    window.dispatchEvent(new Event("beforeprint"));
+    expect(article.style.getPropertyValue("--invoice-print-scale")).toBe("");
+  });
   it.each(["a4", "thermal"])("preserves saved sale details and prints the common header in %s format", async format => {
     const user = userEvent.setup(); open("/app/sales/" + sale._id);
     await screen.findByRole("heading", { name: sale.number, level: 1 });

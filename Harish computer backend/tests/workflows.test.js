@@ -427,7 +427,7 @@ for (const replica of [true, false])
       it("requires named customers and permission for credit sales", async () => {
         const p = await product();
         assert.equal(
-          (await sale(p, { method: "credit", paid: 0 })).status,
+          (await sale(p, { partyName: "", partyPhone: "", method: "credit", paid: 0 })).status,
           400,
         );
         const c = await party();
@@ -436,6 +436,28 @@ for (const replica of [true, false])
             .status,
           401,
         );
+      });
+      it("creates and reuses credit accounts from inline billing details without duplicate balances on retry", async () => {
+        const p = await product();
+        const name = `Inline Buyer ${code()}`;
+        const details = { partyName: name, partyPhone: "98765 43210", partyEmail: "inline@example.test", partyAddress: "Inline address", method: "credit", paid: 0 };
+        const requestKey = key();
+        const first = await sale(p, details, admin, requestKey);
+        assert.equal(first.status, 201, JSON.stringify(first.body));
+        assert.ok(first.body.party);
+        const retry = await sale(p, details, admin, requestKey);
+        assert.equal(retry.body._id, first.body._id);
+        const second = await sale(p, { ...details, partyPhone: "9876543210", paid: 100, method: "cash" });
+        assert.equal(second.status, 201, JSON.stringify(second.body));
+        assert.equal(String(second.body.party), String(first.body.party));
+        const history = (await admin.get(`/api/customers/${first.body.party}/history`)).body;
+        assert.equal(history.party.name, name);
+        assert.equal(history.party.address, details.partyAddress);
+        assert.equal(history.party.balance, first.body.due + second.body.due);
+        assert.equal((await admin.get(`/api/products/${p._id}`)).body.stock, 6);
+        const payment = await admin.post(`/api/sales/${first.body._id}/payments`).set("Idempotency-Key", key()).send({ amount: first.body.due, method: "upi" });
+        assert.equal(payment.status, 201);
+        assert.equal((await admin.get(`/api/customers/${first.body.party}/history`)).body.party.balance, second.body.due);
       });
       it("returns sales at original costs, restores stock and records refunds once", async () => {
         const p = await product(),

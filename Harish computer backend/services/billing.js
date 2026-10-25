@@ -59,9 +59,7 @@ function calculateLine(product, input, kind) {
   const warrantyMonths = coverageEnabled
     ? Number(input.warrantyMonths || 0)
     : 0;
-  const warrantyDays = coverageEnabled
-    ? Number(input.warrantyDays || 0)
-    : 0;
+  const warrantyDays = coverageEnabled ? Number(input.warrantyDays || 0) : 0;
   assert(
     Number.isInteger(warrantyMonths) &&
       warrantyMonths >= 0 &&
@@ -145,7 +143,7 @@ async function invoice(kind, input, user, key) {
     );
     assert(methods.includes(input.method), "Select a valid payment method");
     const partyModel = kind === "sale" ? "Customer" : "Supplier";
-    const party = input.party ? await tx.get(partyModel, input.party) : null;
+    let party = input.party ? await tx.get(partyModel, input.party) : null;
     assert(kind === "sale" || party, "A supplier is required");
     const seen = new Set();
     let lines = [];
@@ -200,7 +198,6 @@ async function invoice(kind, input, user, key) {
     const paid = Math.min(total, tender);
     const due = round(total - paid);
     if (kind === "sale" && due > 0) {
-      assert(party, "Choose a customer for credit sales");
       assert(
         (shop.allowCreditSales ||
           (user.role === "admin" && input.approveCredit === true)) &&
@@ -269,6 +266,25 @@ async function invoice(kind, input, user, key) {
           partyDetails.phone,
         "Customer name and mobile number are required",
       );
+    if (kind === "sale" && due > 0 && !party) {
+      // Resolve a credit account from the inline details in the same transaction.
+      const phone = partyDetails.phone.replace(/\D/g, "");
+      const name = partyDetails.name.trim().toLowerCase();
+      const matches = (await tx.list("Customer")).filter(
+        (customer) =>
+          customer.name.trim().toLowerCase() === name &&
+          (customer.phone || "").replace(/\D/g, "") === phone,
+      );
+      party =
+        matches.length === 1
+          ? matches[0]
+          : await tx.insert("Customer", {
+              ...partyDetails,
+              openingBalance: 0,
+              openingPaid: 0,
+              balance: 0,
+            });
+    }
     const result = await tx.insert(model, {
       ...(exchangeOf ? { exchangeOf } : {}),
       number,

@@ -43,7 +43,11 @@ export function Select({ label, options = [], error, ...props }) {
       <select {...props}>
         <option value="">Select {label?.toLowerCase()}</option>
         {options.map((o) => (
-          <option value={o._id ?? o.value} key={o._id ?? o.value}>
+          <option
+            value={o._id ?? o.value}
+            key={o._id ?? o.value}
+            disabled={o.disabled}
+          >
             {o.name ?? o.label}
           </option>
         ))}
