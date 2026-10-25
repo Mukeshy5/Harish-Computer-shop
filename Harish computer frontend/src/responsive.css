@@ -145,6 +145,27 @@
   .site-shell .footer-strip-icon {
     flex-shrink: 0;
   }
+  .site-shell .quick-actions {
+    top: 50%;
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: auto;
+    flex-direction: column;
+    transform: translateY(-50%);
+    gap: 8px;
+  }
+  .site-shell .quick-actions .back-to-top {
+    position: static;
+    display: none;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 8px;
+    transform: none;
+  }
+  .site-shell .quick-actions .back-to-top.visible {
+    display: grid;
+    place-items: center;
+  }
   .site-shell .loading-status {
     min-width: 0;
     max-width: calc(100vw - 32px);
@@ -253,25 +274,10 @@
   }
 }
 
-/* Keep the contact shortcuts off the reading area on laptops and tablets. */
+/* Compact side controls on laptops, tablets and phones. */
 @media screen and (max-width: 1600px) {
-  .site-shell { padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
-  .site-shell .quick-actions {
-    top: auto;
-    right: max(12px, env(safe-area-inset-right, 0px));
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    flex-direction: row;
-    transform: none;
-    gap: 8px;
-  }
   .site-shell .quick-action { min-width: 48px; min-height: 48px; padding: 8px; justify-content: center; }
   .site-shell .quick-action strong { display: none; }
-  .site-shell .back-to-top {
-    right: max(16px, env(safe-area-inset-right, 0px));
-    bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-    width: 44px;
-    height: 44px;
-  }
 }
 
 @media screen and (max-width: 1200px) {
@@ -533,9 +539,6 @@
 }
 
 @media screen and (max-width: 640px) {
-  .site-shell {
-    padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-  }
   .site-shell .navbar .nav-links.is-open {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -599,29 +602,6 @@
     width: 100%;
     margin: 0;
     text-align: left;
-  }
-  .site-shell .quick-actions {
-    top: auto;
-    right: max(12px, env(safe-area-inset-right, 0px));
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    flex-direction: row;
-    transform: none;
-    gap: 8px;
-  }
-  .site-shell .quick-action {
-    min-width: 48px;
-    min-height: 48px;
-    padding: 8px;
-    justify-content: center;
-  }
-  .site-shell .quick-action strong {
-    display: none;
-  }
-  .site-shell .back-to-top {
-    right: max(16px, env(safe-area-inset-right, 0px));
-    bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-    width: 44px;
-    height: 44px;
   }
   .site-shell .not-found-foot {
     flex-wrap: wrap;

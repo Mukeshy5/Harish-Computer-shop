@@ -33,7 +33,7 @@ function LoadingScreen() {
   )
 }
 
-function QuickActions() {
+function QuickActions({ showTop }) {
   return (
     <aside className="quick-actions" aria-label="Quick contact actions">
       <a className="quick-action quick-whatsapp" href="https://wa.me/917800662424" target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp">
@@ -45,6 +45,7 @@ function QuickActions() {
       <Link className="quick-action quick-developer" to="/developer" aria-label="Open developer support">
         <span aria-hidden="true"><Code2 size={16} /></span><strong>Developer<br />support</strong>
       </Link>
+      <button className={`back-to-top ${showTop ? 'visible' : ''}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top">↑</button>
     </aside>
   )
 }
@@ -124,8 +125,7 @@ function App() {
         </Routes>
       </main>
       <Footer />
-      <QuickActions />
-      <button className={`back-to-top ${showTop ? 'visible' : ''}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top">↑</button>
+      <QuickActions showTop={showTop} />
     </div>
   )
 }
