@@ -7,7 +7,7 @@ import shop from "../../../../Harish computer backend/config/print-shop.json";
 
 const record = { number: "SVC-TEST-001", createdAt: "2026-10-24T10:00:00Z", customerName: "Saved Customer", customerEmail: "saved@example.test", customerPhone: "9876543210", customerAddress: "Saved address", product: "Saved Laptop", model: "Saved Model", problem: "Stored problem", solution: "Stored solution", serviceType: "Receive Customer", status: "completed", totalAmount: 1000, paidAmount: 250, pendingAmount: 750 };
 describe("Reusable shop print header", () => {
-  it("contains every supplied shop detail in a centered header with no controls", () => {
+  it("contains every supplied shop detail in a compact full-width header with no controls", () => {
     render(<ShopHeader details={shop} />);
     const header = screen.getByRole("banner", { name: "Shop details" });
     expect(within(header).getByRole("heading", { name: "HARISH COMPUTER" })).toBeTruthy();

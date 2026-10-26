@@ -1,104 +1,227 @@
-.m-shop-print-header {
+﻿.m-shop-print-header {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  text-align: center;
+  text-align: left;
   color: #111;
-  border-bottom: 2px solid #333;
-  padding: 0 0 16px;
-  margin-bottom: 16px;
+  border-bottom: 1px solid #111;
+  padding: 8px 10px;
+  margin: 0;
   break-inside: avoid;
   overflow-wrap: anywhere;
 }
+.m-shop-print-brand,
+.m-shop-print-offering,
+.m-shop-print-contact,
+.m-shop-print-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.m-shop-print-name {
+  justify-content: flex-start;
+}
+.m-shop-print-offering,
+.m-shop-print-contact {
+  margin-top: 3px;
+}
+.m-shop-print-offering {
+  justify-content: flex-start;
+  align-items: baseline;
+}
+.m-shop-print-title {
+  flex-shrink: 0;
+}
 .management .m-shop-print-header h2 {
-  font-size: 27px;
+  font-size: 23px;
   font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: 0.6px;
-  margin: 0 0 6px;
+  line-height: 1.15;
+  letter-spacing: 0.2px;
+  margin: 0;
 }
 .management .m-shop-print-header p {
-  font-size: 12px;
-  line-height: 1.5;
-  margin: 3px 0;
+  font-size: 10px;
+  line-height: 1.35;
+  margin: 0;
 }
 .management .m-shop-print-header .m-shop-print-title,
 .management .m-shop-print-header .m-shop-print-phones {
   font-weight: 700;
 }
 .management .m-shop-print-header .m-shop-print-services {
-  font-size: 11px;
+  font-size: 10px;
+}
+.m-shop-print-phones,
+.m-shop-print-contact > p:last-child {
+  text-align: right;
+}
+.management .m-shop-print-header .m-shop-print-gstin {
+  margin-top: 3px;
 }
 .m-shop-print-header a {
   color: inherit;
   text-decoration: none;
+}
+.m-shop-print-header .m-invoice-logo {
+  max-width: 48px;
+  max-height: 32px;
+  margin: 0;
+  flex-shrink: 0;
 }
 .m-invoice .m-invoice-document-meta {
   border: 0;
   padding: 0;
   justify-content: flex-end;
 }
-.m-service-print-details {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  margin: 24px 0;
+/* Service bills share one border between adjacent sections and cells. */
+.sc-print-document {
+  --service-grid: 1px solid #444;
+  --service-rule: 1px solid #111;
+  margin-top: 25px;
+  padding: 0;
+  border: var(--service-rule);
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  color: #111;
 }
-.m-service-print-details > div {
+.sc-print-document .m-service-print-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-bottom: var(--service-rule);
+}
+.sc-print-document .m-service-print-meta > div {
   min-width: 0;
+  text-align: right;
 }
-.m-service-print-details dt {
-  font-size: 11px;
-  font-weight: 600;
-  color: #555;
-  margin-bottom: 5px;
+.sc-print-document .m-service-print-meta .m-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: #111;
 }
-.m-service-print-details dd {
+.sc-print-document .m-service-print-meta h3 {
   margin: 0;
   font-size: 13px;
+  line-height: 1.3;
+}
+.sc-print-document .m-service-print-meta p {
+  margin: 3px 0 0;
+  font-size: 10px;
+  line-height: 1.3;
+  color: #111;
+}
+.sc-print-document .m-service-print-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+}
+.sc-print-document .m-service-print-details > div {
+  min-width: 0;
+  padding: 7px 10px;
+  border-bottom: var(--service-grid);
+  break-inside: avoid;
+}
+.sc-print-document .m-service-print-details > div:nth-child(even) {
+  border-left: var(--service-grid);
+}
+.sc-print-document .m-service-print-details > .m-service-print-wide {
+  grid-column: 1 / -1;
+  border-left: 0;
+}
+.sc-print-document .m-service-print-details dt {
+  font-size: 9px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 3px;
+}
+.sc-print-document .m-service-print-details dd {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.m-service-print-totals {
-  margin-left: auto;
-  max-width: 300px;
+.sc-print-document .m-service-print-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  max-width: none;
   width: 100%;
-  border-top: 1px solid #555;
-  padding-top: 12px;
 }
-.m-service-print-totals > div {
+.sc-print-document .m-service-print-totals > div {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 0;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  font-size: 10px;
+  break-inside: avoid;
+  overflow-wrap: anywhere;
 }
-.m-service-print-signature {
-  margin-top: 55px !important;
+.sc-print-document .m-service-print-totals > div + div {
+  border-left: var(--service-grid);
+}
+.sc-print-document .m-service-print-totals strong {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.sc-print-document .m-service-print-signature {
+  margin: 0 !important;
+  padding: 20px 10px 6px;
+  border-top: var(--service-rule);
   text-align: right;
-  border-top: 1px solid #999;
-  padding-top: 8px;
+  font-size: 9px;
+  color: #111;
 }
-.sc-print-document {
-  margin-top: 25px;
+.m-invoice.thermal .m-shop-print-brand,
+.m-invoice.thermal .m-shop-print-offering,
+.m-invoice.thermal .m-shop-print-contact {
+  display: block;
+}
+.m-invoice.thermal .m-shop-print-phones,
+.m-invoice.thermal .m-shop-print-contact > p:last-child {
+  text-align: left;
 }
 .m-invoice.thermal .m-shop-print-header h2 {
   font-size: 18px;
 }
-.m-invoice.thermal .m-shop-print-header p {
-  font-size: 10px;
-}
+.m-invoice.thermal .m-shop-print-header p,
 .m-invoice.thermal .m-shop-print-header .m-shop-print-services {
   font-size: 9px;
 }
-.m-invoice.thermal .m-service-print-details {
-  grid-template-columns: 1fr;
-  gap: 12px;
+.sc-print-document.thermal .m-service-print-details {
+  grid-template-columns: minmax(0, 1fr);
 }
-@media (max-width: 600px) {
-  .m-service-print-details {
-    grid-template-columns: 1fr;
+.sc-print-document.thermal .m-service-print-details > div {
+  border-left: 0;
+}
+.sc-print-document.thermal .m-service-print-totals {
+  grid-template-columns: minmax(0, 1fr);
+}
+.sc-print-document.thermal .m-service-print-totals > div {
+  flex-direction: row;
+  justify-content: space-between;
+  border-left: 0;
+}
+.sc-print-document.thermal .m-service-print-totals > div + div {
+  border-top: var(--service-grid);
+}
+@media screen and (max-width: 600px) {
+  .m-shop-print-brand,
+  .m-shop-print-offering,
+  .m-shop-print-contact {
+    flex-wrap: wrap;
+    gap: 3px 8px;
   }
-  .management .m-shop-print-header h2 {
-    font-size: 23px;
+  .m-shop-print-phones,
+  .m-shop-print-contact > p:last-child {
+    text-align: left;
   }
 }
 @media print {
@@ -108,17 +231,16 @@
   }
   .management .m-shop-print-header {
     color: #000;
-    margin-bottom: 12px;
-    padding-bottom: 12px;
+    padding: 6px 10px;
+    margin: 0;
+    border-bottom: 0.75pt solid #111;
   }
   .management .m-shop-print-header h2 {
-    font-size: 22pt;
+    font-size: 16pt;
   }
-  .management .m-shop-print-header p {
-    font-size: 9pt;
-  }
+  .management .m-shop-print-header p,
   .management .m-shop-print-header .m-shop-print-services {
-    font-size: 8pt;
+    font-size: 7.5pt;
   }
   .m-shop-print-header a::after {
     content: none !important;
@@ -148,27 +270,51 @@
     width: 40%;
   }
   .sc-print-document {
-    margin-top: 0;
+    --service-grid: 0.5pt solid #444;
+    --service-rule: 0.75pt solid #111;
+    margin: 0;
+    border: var(--service-rule);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    break-inside: avoid;
+  }
+  .sc-print-document:not(.thermal) {
+    box-sizing: border-box;
+    width: calc(190mm / var(--invoice-print-scale, 1));
+    max-width: none;
+    zoom: var(--invoice-print-scale, 1);
+    padding: 0;
+  }
+  .sc-print-document .m-service-print-details > div {
+    padding: 5px 8px;
+  }
+  .sc-print-document .m-service-print-details dt {
+    font-size: 8px;
+    margin-bottom: 2px;
+  }
+  .sc-print-document .m-service-print-details dd {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+  .sc-print-document .m-service-print-totals > div {
+    padding: 6px 8px;
+  }
+  .sc-print-document .m-service-print-totals strong {
+    font-size: 11px;
   }
   .m-invoice.thermal {
     max-width: 100%;
   }
   .m-invoice.thermal .m-shop-print-header h2 {
-    font-size: 15pt;
+    font-size: 13pt;
   }
-  .m-invoice.thermal .m-shop-print-header p {
-    font-size: 8pt;
-  }
+  .m-invoice.thermal .m-shop-print-header p,
   .m-invoice.thermal .m-shop-print-header .m-shop-print-services {
     font-size: 7pt;
   }
   .m-invoice.thermal .m-table th:first-child,
   .m-invoice.thermal .m-table td:first-child {
     width: 45%;
-  }
-  .m-invoice.thermal .m-service-print-details dt,
-  .m-invoice.thermal .m-service-print-details dd {
-    font-size: 9px;
   }
   .m-invoice.thermal .m-invoice-document-meta h3 {
     font-size: 13px;

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 // CSS zoom changes pagination as well as appearance; transform alone does not.
-export function useA4PrintFit(thermal) {
+export function useA4PrintFit(thermal, pageHeightMm = 276) {
   const ref = useRef(null);
   useEffect(() => {
     const reset = () =>
@@ -11,14 +11,16 @@ export function useA4PrintFit(thermal) {
       if (!invoice || thermal) return;
       reset();
       const page = document.createElement("div");
-      page.style.cssText =
-        "position:absolute;visibility:hidden;width:190mm;height:276mm;pointer-events:none";
+      page.style.cssText = `position:absolute;visibility:hidden;width:190mm;height:${pageHeightMm}mm;pointer-events:none`;
       document.body.append(page);
       const pageHeight = page.getBoundingClientRect().height;
       let scale = Math.min(
         1,
         pageHeight /
-          Math.max(invoice.scrollHeight, invoice.getBoundingClientRect().height),
+          Math.max(
+            invoice.scrollHeight,
+            invoice.getBoundingClientRect().height,
+          ),
       );
       page.remove();
       invoice.style.setProperty("--invoice-print-scale", String(scale || 1));
@@ -38,6 +40,6 @@ export function useA4PrintFit(thermal) {
       window.removeEventListener("afterprint", reset);
       reset();
     };
-  }, [thermal]);
+  }, [thermal, pageHeightMm]);
   return ref;
 }

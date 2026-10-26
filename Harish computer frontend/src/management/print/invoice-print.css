@@ -16,7 +16,7 @@
   background: #fff;
 }
 .m-invoice-bordered:not(.thermal) .m-shop-print-header {
-  padding: 16px 12px;
+  padding: 8px 10px;
   margin: 0;
   border-bottom: var(--invoice-rule);
 }
@@ -189,8 +189,8 @@
   .m-invoice ~ .m-history-section {
     display: none !important;
   }
-  .m-invoice:not(.thermal) {
-    width: 190mm;
+  .m-invoice-bordered:not(.thermal) {
+    width: calc(190mm / var(--invoice-print-scale, 1));
     max-width: none;
     margin: 0;
     padding: 0;
@@ -198,33 +198,33 @@
     color: #111;
     break-inside: avoid;
   }
-  .m-invoice:not(.thermal) .m-invoice-top {
+  .m-invoice-bordered:not(.thermal) .m-invoice-top {
     padding-bottom: 8px;
   }
-  .m-invoice:not(.thermal) .m-invoice-top h3 {
+  .m-invoice-bordered:not(.thermal) .m-invoice-top h3 {
     font-size: 15px;
     margin-top: 4px;
   }
-  .m-invoice:not(.thermal) .m-invoice-top p {
+  .m-invoice-bordered:not(.thermal) .m-invoice-top p {
     margin: 3px 0;
     line-height: 1.3;
   }
-  .m-invoice:not(.thermal) .m-invoice-party {
+  .m-invoice-bordered:not(.thermal) .m-invoice-party {
     display: flex;
     padding: 12px 0;
     gap: 20px;
   }
-  .m-invoice:not(.thermal) .m-invoice-party > div:first-child {
+  .m-invoice-bordered:not(.thermal) .m-invoice-party > div:first-child {
     flex: 1;
     min-width: 0;
     overflow-wrap: anywhere;
   }
-  .m-invoice:not(.thermal) .m-table {
+  .m-invoice-bordered:not(.thermal) .m-table {
     table-layout: fixed;
     width: 100%;
   }
-  .m-invoice:not(.thermal) .m-table th,
-  .m-invoice:not(.thermal) .m-table td {
+  .m-invoice-bordered:not(.thermal) .m-table th,
+  .m-invoice-bordered:not(.thermal) .m-table td {
     font-size: 9px;
     padding: 6px 4px;
     white-space: normal;
@@ -232,41 +232,41 @@
     text-overflow: clip;
     color: #111;
   }
-  .m-invoice:not(.thermal) .m-table th:first-child {
+  .m-invoice-bordered:not(.thermal) .m-table th:first-child {
     width: 40%;
   }
-  .m-invoice:not(.thermal) .m-table th:not(:first-child),
-  .m-invoice:not(.thermal) .m-table td:not(:first-child) {
+  .m-invoice-bordered:not(.thermal) .m-table th:not(:first-child),
+  .m-invoice-bordered:not(.thermal) .m-table td:not(:first-child) {
     text-align: right;
   }
-  .m-invoice:not(.thermal) .m-table td small {
+  .m-invoice-bordered:not(.thermal) .m-table td small {
     font-size: 8px;
     color: #333;
   }
-  .m-invoice:not(.thermal) .m-invoice-summary {
+  .m-invoice-bordered:not(.thermal) .m-invoice-summary {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 250px;
     gap: 20px;
     margin-top: 12px;
   }
-  .m-invoice:not(.thermal) .m-invoice-summary > div:first-child {
+  .m-invoice-bordered:not(.thermal) .m-invoice-summary > div:first-child {
     overflow-wrap: anywhere;
     white-space: pre-wrap;
   }
-  .m-invoice:not(.thermal) .m-invoice-summary small {
+  .m-invoice-bordered:not(.thermal) .m-invoice-summary small {
     display: none;
   }
-  .m-invoice:not(.thermal) .m-bill-totals {
+  .m-invoice-bordered:not(.thermal) .m-bill-totals {
     gap: 6px;
     padding-top: 8px;
   }
-  .m-invoice:not(.thermal) .m-grand-total {
+  .m-invoice-bordered:not(.thermal) .m-grand-total {
     padding-top: 8px;
   }
-  .m-invoice:not(.thermal) .m-grand-total strong {
+  .m-invoice-bordered:not(.thermal) .m-grand-total strong {
     font-size: 16px;
   }
-  .m-invoice:not(.thermal) .m-invoice-footer {
+  .m-invoice-bordered:not(.thermal) .m-invoice-footer {
     margin-top: 12px;
     padding-top: 10px;
     overflow-wrap: anywhere;
@@ -279,7 +279,7 @@
     -webkit-print-color-adjust: exact;
   }
   .m-invoice-bordered:not(.thermal) .m-shop-print-header {
-    padding: 10px;
+    padding: 6px 10px;
     margin: 0;
   }
   .m-invoice-bordered:not(.thermal) .m-invoice-document-meta {

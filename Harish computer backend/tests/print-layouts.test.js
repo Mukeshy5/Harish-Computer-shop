@@ -68,9 +68,16 @@ describe("Generated PDF print layouts", () => {
       assert.ok(pages[0].includes(value), value);
     assert.match(pdf.toString("latin1"), /\/MediaBox \[0 0 595\.28 841\.89\]/);
   });
-  it("keeps long service descriptions and final totals across pages", async () => {
-    const pages = pageText(await serviceBillPdf({ ...service, customerAddress: "Long customer address ".repeat(40), problem: "Stored diagnostic detail ".repeat(90), solution: "Stored repair detail ".repeat(100) }));
-    assert.ok(pages.length > 1); pages.forEach(headerIsComplete);
-    assert.ok(pages.at(-1).includes("Pending amount"));
+  it("fits long service descriptions and all totals inside the top half of one A4 page", async () => {
+    const pdf = await serviceBillPdf({ ...service, customerAddress: "Long customer address ".repeat(40), problem: "Stored diagnostic detail ".repeat(90), solution: "Stored repair detail ".repeat(100) });
+    const pages = pageText(pdf);
+    assert.equal(pages.length, 1); headerIsComplete(pages[0]);
+    for (const value of ["Long customer address", "Stored diagnostic detail", "Stored repair detail", "Pending amount", "Authorized signature"]) assert.ok(pages[0].includes(value), value);
+    const streams = [...pdf.toString("latin1").matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)].flatMap(match => {
+      try { return [zlib.inflateSync(Buffer.from(match[1], "latin1")).toString("latin1")]; } catch { return []; }
+    });
+    const frame = streams.flatMap(stream => [...stream.matchAll(/28 22 539\.28 ([\d.]+) re/g)]).at(-1);
+    assert.ok(frame, "The service bill has a full-width outer frame");
+    assert.ok(Number(frame[1]) <= 128 * 72 / 25.4, "The bill stays within a half-page print area");
   });
 });

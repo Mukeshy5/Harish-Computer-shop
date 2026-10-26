@@ -67,6 +67,21 @@ describe("Sell and service print controls", () => {
     window.dispatchEvent(new Event("afterprint"));
     expect(article.style.getPropertyValue("--invoice-print-scale")).toBe("");
   });
+  it("fits a service bill within the half-A4 print area and restores the preview afterwards", async () => {
+    const user = userEvent.setup();
+    open("/app/service-center");
+    await user.click(await screen.findByRole("button", { name: "View " + service.number }));
+    const article = await screen.findByRole("article", { name: "Service receipt preview" });
+    Object.defineProperty(article, "scrollHeight", { configurable: true, value: 1200 });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
+      const scale = Number(article.style.getPropertyValue("--invoice-print-scale")) || 1;
+      return { height: this === article ? 1202 * scale + (scale < 1 ? 20 : 0) : this.style.height === "128mm" ? 483 : 1043, width: 718 };
+    });
+    window.dispatchEvent(new Event("beforeprint"));
+    expect(article.getBoundingClientRect().height).toBeLessThanOrEqual(483);
+    window.dispatchEvent(new Event("afterprint"));
+    expect(article.style.getPropertyValue("--invoice-print-scale")).toBe("");
+  });
   it.each(["a4", "thermal"])("preserves saved sale details and prints the common header in %s format", async format => {
     const user = userEvent.setup(); open("/app/sales/" + sale._id);
     await screen.findByRole("heading", { name: sale.number, level: 1 });
