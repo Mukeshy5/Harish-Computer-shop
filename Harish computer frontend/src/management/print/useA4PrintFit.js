@@ -27,7 +27,7 @@ export function useA4PrintFit(thermal) {
       for (let attempt = 0; attempt < 4; attempt += 1) {
         const height = invoice.getBoundingClientRect().height;
         if (height <= pageHeight) break;
-        scale *= pageHeight / height;
+        scale *= (pageHeight - 1) / height;
         invoice.style.setProperty("--invoice-print-scale", String(scale || 1));
       }
     };
