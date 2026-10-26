@@ -11,32 +11,52 @@ const margin = 28;
 const a4 = [595.28, 841.89];
 const layoutHeight = 100000;
 
-function drawInvoice(document, invoice) {
+function drawInvoice(document, invoice, scale = 1) {
   const shop = invoice.shopSnapshot || {};
   const right = a4[0] - margin;
   const width = right - margin;
+  const inset = 6;
+  const divider = 334;
+  // Keep rules visible at their physical print weight when a long invoice is
+  // scaled to A4. Paths are drawn once so adjacent cells share their borders.
+  const rule = (x1, y1, x2, y2, major = false) => {
+    document
+      .save()
+      .lineWidth((major ? 0.75 : 0.5) / scale)
+      .strokeColor(major ? "#111111" : "#444444")
+      .moveTo(x1, y1)
+      .lineTo(x2, y2)
+      .stroke()
+      .restore();
+  };
   drawShopHeader(document, shop);
   let y = document.y;
+  const metaTop = y - 14;
   document
     .font("Helvetica-Bold")
     .fontSize(12)
-    .text("SALES INVOICE", margin, y, { width: 230 });
+    .text("SALES INVOICE", margin + inset, y, { width: 230 });
   document
     .font("Helvetica")
     .fontSize(9)
     .text(`Invoice: ${invoice.number}`, 310, y, {
-      width: right - 310,
+      width: right - 310 - inset,
       align: "right",
     })
     .text(
       `Date: ${new Date(invoice.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}`,
       { align: "right" },
     );
-  y = document.y + 12;
+  const metaBottom = document.y + 8;
+  rule(300, metaTop, 300, metaBottom);
+  rule(margin, metaBottom, right, metaBottom);
+  y = metaBottom + 8;
   document
     .font("Helvetica-Bold")
     .fontSize(9)
-    .text("CUSTOMER", margin, y, { width: 300 });
+    .text("CUSTOMER", margin + inset, y, {
+      width: divider - margin - inset * 2,
+    });
   document
     .font("Helvetica")
     .text(
@@ -49,41 +69,43 @@ function drawInvoice(document, invoice) {
       ]
         .filter(Boolean)
         .join("\n"),
-      margin,
+      margin + inset,
       document.y + 4,
-      { width: 300 },
+      { width: divider - margin - inset * 2 },
     );
   const customerBottom = document.y;
   document
     .fontSize(9)
-    .text(`Payment: ${String(invoice.method || "").toUpperCase()}`, 350, y, {
-      width: right - 350,
+    .text(`Payment: ${String(invoice.method || "").toUpperCase()}`, divider + inset, y, {
+      width: right - divider - inset * 2,
       align: "right",
     });
-  document.y = Math.max(customerBottom, document.y) + 14;
+  const tableTop = Math.max(customerBottom, document.y) + 8;
+  rule(divider, metaBottom, divider, tableTop);
+  rule(margin, tableTop, right, tableTop, true);
 
-  const columns = [
-    { label: "PRODUCT / MODEL / COVERAGE", x: margin, width: 225 },
-    { label: "QTY", x: 261, width: 28 },
-    { label: "RATE", x: 297, width: 74 },
-    { label: "DISCOUNT", x: 379, width: 62 },
-    { label: "GST", x: 449, width: 32 },
-    { label: "AMOUNT", x: 489, width: right - 489 },
-  ];
-  y = document.y;
-  document
-    .rect(margin, y - 5, width, 22)
-    .fill("#edf2f7")
-    .fillColor("black");
+  const edges = [margin, 257, 293, 375, 445, 485, right];
+  const columns = ["PRODUCT / MODEL / COVERAGE", "QTY", "RATE", "DISCOUNT", "GST", "AMOUNT"].map(
+    (label, index) => ({
+      label,
+      x: edges[index] + 4,
+      width: edges[index + 1] - edges[index] - 8,
+    }),
+  );
   document.font("Helvetica-Bold").fontSize(8);
+  const headerHeight = Math.max(
+    22,
+    ...columns.map(column => document.heightOfString(column.label, { width: column.width }) + 12),
+  );
   columns.forEach((column, index) =>
-    document.text(column.label, column.x, y, {
+    document.text(column.label, column.x, tableTop + 6, {
       width: column.width,
       align: index ? "right" : "left",
     }),
   );
-  y += 23;
-  for (const line of invoice.lines || []) {
+  y = tableTop + headerHeight;
+  rule(margin, y, right, y, true);
+  for (const [index, line] of (invoice.lines || []).entries()) {
     const coverage = [
       line.guaranteeEnabled
         ? "Guarantee"
@@ -132,21 +154,18 @@ function drawInvoice(document, invoice) {
       ),
     );
     columns.forEach((column, index) =>
-      document.text(values[index], column.x, y, {
+      document.text(values[index], column.x, y + 5, {
         width: column.width,
         align: index ? "right" : "left",
       }),
     );
     y += rowHeight;
-    document
-      .moveTo(margin, y - 5)
-      .lineTo(right, y - 5)
-      .lineWidth(0.4)
-      .strokeColor("#dbe2ea")
-      .stroke();
+    // The last row's bottom rule is the major summary boundary below.
+    if (index < invoice.lines.length - 1) rule(margin, y, right, y);
   }
 
-  y += 8;
+  if (invoice.lines?.length) rule(margin, y, right, y, true);
+  edges.slice(1, -1).forEach(x => rule(x, tableTop, x, y));
   const summaryTop = y;
   const totals = [
     ["Subtotal", invoice.subtotal],
@@ -164,47 +183,65 @@ function drawInvoice(document, invoice) {
     ["Pending amount", invoice.due],
     ...(invoice.change > 0 ? [["Cash change", invoice.change]] : []),
   ];
-  totals.forEach(([label, value]) => {
+  totals.forEach(([label, value], index) => {
+    const major = label === "Total amount" || label === "Net total";
+    if (index) rule(divider, y, right, y, major);
     document
-      .font(label === "Total amount" ? "Helvetica-Bold" : "Helvetica")
+      .font(major ? "Helvetica-Bold" : "Helvetica")
       .fontSize(9);
     const labelHeight = document.heightOfString(label, { width: 110 });
     const valueHeight = document.heightOfString(money(value), {
-      width: right - 460,
+      width: right - 460 - inset,
     });
     document
-      .text(label, 342, y, { width: 110 })
-      .text(money(value), 460, y, { width: right - 460, align: "right" });
-    y += Math.max(14, labelHeight + 3, valueHeight + 3);
+      .text(label, 342, y + 5, { width: 110 })
+      .text(money(value), 460, y + 5, { width: right - 460 - inset, align: "right" });
+    y += Math.max(18, labelHeight + 10, valueHeight + 10);
   });
   document.font("Helvetica").fontSize(9);
   let notesBottom = summaryTop;
   if (invoice.notes) {
-    document.text(invoice.notes, margin, summaryTop, { width: 290 });
-    notesBottom = document.y;
+    document.text(invoice.notes, margin + inset, summaryTop + 6, {
+      width: divider - margin - inset * 2,
+    });
+    notesBottom = document.y + 6;
   }
-  y = Math.max(y, notesBottom) + 14;
+  y = Math.max(y, notesBottom);
+  rule(divider, summaryTop, divider, y);
+  rule(margin, y, right, y, true);
   document.text(
     `Payment status: ${invoice.due <= 0 ? "Paid" : invoice.paid > 0 ? "Partial" : "Unpaid"}`,
-    margin,
-    y,
-    { width },
+    margin + inset,
+    y + 8,
+    { width: width - inset * 2 },
   );
+  y = document.y + 8;
+  rule(margin, y, right, y);
   document.text(
     shop.receiptFooter || "Thank you for shopping with us.",
-    margin,
-    document.y + 5,
-    { width },
+    margin + inset,
+    y + 8,
+    { width: width - inset * 2 },
   );
-  y = document.y + 28;
-  document.moveTo(390, y).lineTo(right, y).strokeColor("#444444").stroke();
+  const signatureTop = document.y + 8;
+  rule(margin, signatureTop, right, signatureTop);
+  y = signatureTop + 28;
+  rule(390, y, right - inset, y);
   document
     .fontSize(8)
     .text("Authorized signature", 390, y + 5, {
-      width: right - 390,
+      width: right - 390 - inset,
       align: "center",
     });
-  return document.y + 2;
+  const bottom = document.y + 8;
+  document
+    .save()
+    .lineWidth(0.75 / scale)
+    .strokeColor("#111111")
+    .rect(margin, margin - inset, width, bottom - margin + inset)
+    .stroke()
+    .restore();
+  return bottom;
 }
 
 function invoicePdf(invoice) {
@@ -229,7 +266,7 @@ function invoicePdf(invoice) {
       .translate(-margin, -margin);
     // PDFKit's line wrapping uses page.height. The physical MediaBox stays A4.
     document.page.height = layoutHeight;
-    drawInvoice(document, invoice);
+    drawInvoice(document, invoice, scale);
     document.page.height = a4[1];
     document.restore().end();
   });

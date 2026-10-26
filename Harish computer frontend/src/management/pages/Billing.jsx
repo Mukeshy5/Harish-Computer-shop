@@ -1504,7 +1504,7 @@ export function Invoice({ kind }) {
       </style>
       <article
         ref={invoiceRef}
-        className={`m-card m-invoice ${thermal ? "thermal" : ""}`}
+        className={`m-card m-invoice m-invoice-bordered ${thermal ? "thermal" : ""}`}
       >
         <ShopHeader details={b.printShop} gstin={shop.gstin} logo={shop.logo} />
         <div className="m-invoice-top m-invoice-document-meta">
@@ -1629,7 +1629,7 @@ export function Invoice({ kind }) {
                 <span>−{money(b.returned)}</span>
               </div>
             )}
-            <div>
+            <div className="m-net-total">
               <span>Net total</span>
               <strong>{money(b.total - b.returned)}</strong>
             </div>

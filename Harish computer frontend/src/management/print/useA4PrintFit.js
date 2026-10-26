@@ -14,12 +14,22 @@ export function useA4PrintFit(thermal) {
       page.style.cssText =
         "position:absolute;visibility:hidden;width:190mm;height:276mm;pointer-events:none";
       document.body.append(page);
-      const scale = Math.min(
+      const pageHeight = page.getBoundingClientRect().height;
+      let scale = Math.min(
         1,
-        page.getBoundingClientRect().height / invoice.scrollHeight,
+        pageHeight /
+          Math.max(invoice.scrollHeight, invoice.getBoundingClientRect().height),
       );
       page.remove();
       invoice.style.setProperty("--invoice-print-scale", String(scale || 1));
+      // Zoom rounds collapsed table rules to physical pixels. Re-measure the
+      // visible frame so accumulated border rounding cannot add a second page.
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const height = invoice.getBoundingClientRect().height;
+        if (height <= pageHeight) break;
+        scale *= pageHeight / height;
+        invoice.style.setProperty("--invoice-print-scale", String(scale || 1));
+      }
     };
     window.addEventListener("beforeprint", fit);
     window.addEventListener("afterprint", reset);

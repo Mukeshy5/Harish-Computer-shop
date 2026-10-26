@@ -1,3 +1,156 @@
+/* Scoped to billing invoices; shared service receipts and thermal output keep
+   their existing layout. Adjacent sections own just one shared border. */
+.m-invoice-bordered:not(.thermal) {
+  --invoice-grid: 1px solid #444;
+  --invoice-rule: 1px solid #111;
+  box-sizing: border-box;
+  padding: 0;
+  border: var(--invoice-rule);
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  color: #111;
+  background: #fff;
+}
+.m-invoice-bordered:not(.thermal) .m-shop-print-header {
+  padding: 16px 12px;
+  margin: 0;
+  border-bottom: var(--invoice-rule);
+}
+.m-invoice-bordered:not(.thermal) .m-invoice-document-meta {
+  padding: 10px 12px;
+  border-bottom: var(--invoice-grid);
+}
+.m-invoice-bordered:not(.thermal) .m-invoice-party {
+  gap: 0;
+  padding: 0;
+  border-bottom: var(--invoice-rule);
+  align-items: stretch;
+}
+.m-invoice-bordered:not(.thermal) .m-invoice-party > div {
+  min-width: 0;
+  padding: 12px;
+  overflow-wrap: anywhere;
+}
+.m-invoice-bordered:not(.thermal) .m-invoice-party > div:first-child {
+  flex: 1;
+}
+.m-invoice-bordered:not(.thermal) .m-invoice-party > div + div {
+  border-left: var(--invoice-grid);
+}
+.m-invoice-bordered:not(.thermal) :is(h2, h3, p, small, strong, .m-eyebrow, .m-badge) {
+  color: inherit;
+}
+.m-invoice-bordered:not(.thermal) .m-badge {
+  background: #fff;
+  border: var(--invoice-grid);
+  border-radius: 0;
+}
+.m-invoice-bordered:not(.thermal) .m-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+  white-space: normal;
+}
+.m-invoice-bordered:not(.thermal) .m-table th,
+.m-invoice-bordered:not(.thermal) .m-table td {
+  padding: 8px 6px;
+  border: var(--invoice-grid);
+  color: inherit;
+  background: #fff;
+  max-width: none;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  vertical-align: top;
+}
+.m-invoice-bordered:not(.thermal) .m-table th {
+  font-weight: 700;
+  border-top: 0;
+  border-bottom: var(--invoice-rule);
+}
+/* The invoice frame supplies the table's outside vertical edges. */
+.m-invoice-bordered:not(.thermal) .m-table :is(th, td):first-child {
+  width: 40%;
+  border-left: 0;
+}
+.m-invoice-bordered:not(.thermal) .m-table :is(th, td):last-child {
+  border-right: 0;
+}
+.m-invoice-bordered:not(.thermal) .m-table :is(th, td):not(:first-child) {
+  text-align: right;
+}
+.m-invoice-bordered:not(.thermal) .m-table tr:last-child td {
+  border-bottom: var(--invoice-rule);
+}
+.m-invoice-bordered:not(.thermal) .m-invoice-summary {
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 32%);
+  gap: 0;
+  margin-top: 0;
+}
+.m-invoice-bordered:not(.thermal) .m-invoice-summary > div:first-child {
+  padding: 12px;
+  color: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.m-invoice-bordered:not(.thermal) .m-bill-totals {
+  padding: 0;
+  margin: 0;
+  gap: 0;
+  border-top: 0;
+  border-left: var(--invoice-grid);
+}
+.m-invoice-bordered:not(.thermal) .m-bill-totals > div {
+  margin: 0;
+  padding: 8px 10px;
+  color: inherit;
+}
+.m-invoice-bordered:not(.thermal) .m-bill-totals > div + div {
+  border-top: var(--invoice-grid);
+}
+.m-invoice-bordered:not(.thermal) .m-bill-totals :is(.m-grand-total, .m-net-total) {
+  border-top: var(--invoice-rule);
+  font-weight: 700;
+}
+.m-invoice-bordered:not(.thermal) .m-grand-total strong {
+  font-size: 18px;
+  letter-spacing: normal;
+}
+.m-invoice-bordered:not(.thermal) .m-invoice-footer {
+  border-top: var(--invoice-rule);
+  margin-top: 0;
+  padding: 12px;
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+@media screen and (max-width: 600px) {
+  .m-invoice-bordered:not(.thermal) .m-invoice-party {
+    flex-wrap: wrap;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-party > div:first-child {
+    flex-basis: 100%;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-party > div + div {
+    flex: 1;
+    border-top: var(--invoice-grid);
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-party > div:nth-child(2) {
+    border-left: 0;
+  }
+  .m-invoice-bordered:not(.thermal) .m-table {
+    min-width: 560px;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .m-invoice-bordered:not(.thermal) .m-bill-totals {
+    border-left: 0;
+    border-top: var(--invoice-rule);
+  }
+}
 @media print {
   .m-invoice ~ .m-history-section {
     display: none !important;
@@ -83,5 +236,58 @@
     margin-top: 12px;
     padding-top: 10px;
     overflow-wrap: anywhere;
+  }
+  .m-invoice-bordered:not(.thermal) {
+    --invoice-grid: 0.5pt solid #444;
+    --invoice-rule: 0.75pt solid #111;
+    border: var(--invoice-rule);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .m-invoice-bordered:not(.thermal) .m-shop-print-header {
+    padding: 10px;
+    margin: 0;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-document-meta {
+    padding: 8px 10px;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-party {
+    padding: 0;
+    gap: 0;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-party > div {
+    padding: 8px 10px;
+  }
+  .m-invoice-bordered:not(.thermal) .m-table-wrap {
+    overflow: visible;
+  }
+  .m-invoice-bordered:not(.thermal) .m-table thead {
+    display: table-header-group;
+  }
+  .m-invoice-bordered:not(.thermal) .m-table tr,
+  .m-invoice-bordered:not(.thermal) .m-invoice-party,
+  .m-invoice-bordered:not(.thermal) .m-invoice-document-meta,
+  .m-invoice-bordered:not(.thermal) .m-invoice-summary,
+  .m-invoice-bordered:not(.thermal) .m-invoice-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-summary {
+    gap: 0;
+    margin-top: 0;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-summary > div:first-child {
+    padding: 8px 10px;
+  }
+  .m-invoice-bordered:not(.thermal) .m-bill-totals {
+    gap: 0;
+    padding: 0;
+  }
+  .m-invoice-bordered:not(.thermal) .m-bill-totals > div {
+    padding: 5px 8px;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-footer {
+    margin-top: 0;
+    padding: 8px 10px;
   }
 }
