@@ -31,6 +31,7 @@ import {
 } from "../api";
 import toast from "react-hot-toast";
 import { coverageText, invoicePreview } from "../invoice-calculations";
+import { SalesHistory } from "./SalesHistory";
 import {
   Badge,
   Button,
@@ -1164,6 +1165,28 @@ export function InvoiceList({ kind }) {
       setExporting(false);
     }
   };
+  if (!purchase) {
+    return (
+      <SalesHistory
+        data={data}
+        loading={loading}
+        error={error}
+        onRetry={reload}
+        filters={{ q, from, to, paymentStatus }}
+        onFiltersChange={(next) => {
+          setQ(next.q);
+          setFrom(next.from);
+          setTo(next.to);
+          setPaymentStatus(next.paymentStatus);
+          setPage(1);
+        }}
+        page={page}
+        onPageChange={setPage}
+        exporting={exporting}
+        onExport={downloadReport}
+      />
+    );
+  }
   return (
     <>
       <Heading
