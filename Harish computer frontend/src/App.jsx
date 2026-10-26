@@ -1,34 +1,24 @@
 import { Link, Routes, Route, useLocation } from 'react-router-dom'
-import { Management } from './management/Management'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './components/Home.jsx'
-import AboutUs from './pages/AboutUs'
-import Services from './pages/Services'
-import Products from './pages/Products'
-import Contact from './pages/Contact'
-import PrivacyPolicy from './pages/PrivacyPolicy'
-import Terms from './pages/Terms'
-import Gallery from './pages/Gallery'
-import Developer from './pages/Developer'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Code2, MessageCircle, Phone } from 'lucide-react'
 
-function LoadingScreen() {
+const Management = lazy(() => import('./management/Management').then(module => ({ default: module.Management })))
+const AboutUs = lazy(() => import('./pages/AboutUs'))
+const Services = lazy(() => import('./pages/Services'))
+const Products = lazy(() => import('./pages/Products'))
+const Contact = lazy(() => import('./pages/Contact'))
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
+const Terms = lazy(() => import('./pages/Terms'))
+const Gallery = lazy(() => import('./pages/Gallery'))
+const Developer = lazy(() => import('./pages/Developer'))
+
+function PageLoading() {
   return (
-    <div className="loading-screen" role="status" aria-live="polite">
-      <div className="loading-orbit" aria-hidden="true">
-        <span className="loading-orbit-ring loading-orbit-ring-one" />
-        <span className="loading-orbit-ring loading-orbit-ring-two" />
-        <div className="loading-mark"><span>H</span><span>C</span></div>
-      </div>
-      <div className="loading-wordmark"><b>H</b>arish <b>C</b>omputer</div>
-      <p className="loading-tagline">Smart technology. Trusted service.</p>
-      <div className="loading-status">
-        <span className="loading-status-dot" />
-        <span>Preparing your digital experience</span>
-        <i aria-hidden="true"><em /><em /><em /></i>
-      </div>
+    <div className="container route-loading" role="status" aria-live="polite">
+      Loading page…
     </div>
   )
 }
@@ -88,12 +78,6 @@ function NotFound() {
 function App() {
   const location = useLocation()
   const [showTop, setShowTop] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 700)
-    return () => window.clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 500)
@@ -105,12 +89,12 @@ function App() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }, [location.pathname, location.search])
 
-  if (loading) return <LoadingScreen />
-  if (location.pathname === '/app' || location.pathname.startsWith('/app/')) return <Routes><Route path="/app/*" element={<Management />} /></Routes>
+  if (location.pathname === '/app' || location.pathname.startsWith('/app/')) return <Suspense fallback={<PageLoading />}><Routes><Route path="/app/*" element={<Management />} /></Routes></Suspense>
   return (
     <div className="site-shell">
       <Navbar key={location.pathname} />
       <main>
+        <Suspense fallback={<PageLoading />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<AboutUs />} />
@@ -123,6 +107,7 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </main>
       <Footer />
       <QuickActions showTop={showTop} />

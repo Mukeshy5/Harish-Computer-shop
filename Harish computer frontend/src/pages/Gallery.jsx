@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import homeImage from '../assets/home.jpeg'
-import storeImage from '../assets/Computer & Laptop Store.jpeg'
-import accessoriesImage from '../assets/Computer Accessories.jpeg'
-import printerImage from '../assets/Printers & Office Equipment.jpeg'
-import repairImage from '../assets/Repair & Technical Support.jpeg'
+import homeImage from '../assets/optimized/home.jpeg'
+import storeImage from '../assets/optimized/Computer & Laptop Store.jpeg'
+import accessoriesImage from '../assets/optimized/Computer Accessories.jpeg'
+import printerImage from '../assets/optimized/Printers & Office Equipment.jpeg'
+import repairImage from '../assets/optimized/Repair & Technical Support.jpeg'
 import Reveal from '../components/Reveal'
 
 const gallery = [
@@ -45,7 +45,7 @@ export default function Gallery() {
             {gallery.map(([title, img], index) => (
               <Reveal key={title} delay={index * 55}><div className="card gallery-card-animated group overflow-hidden">
                 <div className="relative h-48 overflow-hidden">
-                  <img src={img} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <img loading="lazy" decoding="async" src={img} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-[var(--navy)]/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span className="text-white font-semibold">View {title}</span>
                   </div>

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import storeImage from '../assets/Computer & Laptop Store.jpeg'
-import homeImage from '../assets/home.jpeg'
-import accessoriesImage from '../assets/Computer Accessories.jpeg'
-import printerImage from '../assets/Printers & Office Equipment.jpeg'
-import repairImage from '../assets/Repair & Technical Support.jpeg'
+import storeImage from '../assets/optimized/Computer & Laptop Store.jpeg'
+import homeImage from '../assets/optimized/home.jpeg'
+import accessoriesImage from '../assets/optimized/Computer Accessories.jpeg'
+import printerImage from '../assets/optimized/Printers & Office Equipment.jpeg'
+import repairImage from '../assets/optimized/Repair & Technical Support.jpeg'
 import Reveal from '../components/Reveal'
 
 const products = [
@@ -49,7 +49,7 @@ export default function Products() {
               <Reveal key={title} delay={index * 70}><Link to="/contact" className="card product-card-animated group block h-full">
                 <div className="relative overflow-hidden rounded-[var(--radius)] border border-[var(--line)] h-48 mb-5">
                   <span className="absolute top-4 left-4 z-10 w-9 h-9 rounded-full flex items-center justify-center bg-white text-[var(--navy)] font-bold text-xs shadow-sm">{icon}</span>
-                  <img src={img} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img loading="lazy" decoding="async" src={img} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-[var(--navy)]/5" />
                 </div>
                 <div className="card-body">

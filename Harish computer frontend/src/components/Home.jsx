@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom'
-import storeImage from '../assets/Computer & Laptop Store.jpeg'
-import homeImage from '../assets/home.jpeg'
-import accessoriesImage from '../assets/Computer Accessories.jpeg'
-import printerImage from '../assets/Printers & Office Equipment.jpeg'
-import repairImage from '../assets/Repair & Technical Support.jpeg'
+import storeImage from '../assets/optimized/Computer & Laptop Store.jpeg'
+import homeImage from '../assets/optimized/home.jpeg'
+import accessoriesImage from '../assets/optimized/Computer Accessories.jpeg'
+import printerImage from '../assets/optimized/Printers & Office Equipment.jpeg'
+import repairImage from '../assets/optimized/Repair & Technical Support.jpeg'
 import Reveal from './Reveal'
-import { useEffect, useState } from 'react'
 
 const categories = [
   ['01', 'Desktop Computers', 'Reliable setups for home, office and professional work.', storeImage],
@@ -23,34 +22,9 @@ const services = [
 ]
 
 const HeroHeadline = () => {
-  const headlineSequence = 'Smart tech.|Trusted service.'
-  const [position, setPosition] = useState(0)
-  const [deleting, setDeleting] = useState(false)
-
-  useEffect(() => {
-    const finished = position === headlineSequence.length
-    const empty = position === 0
-    const delay = finished ? 1800 : empty && deleting ? 450 : deleting ? 55 : 95
-    const timer = window.setTimeout(() => {
-      if (finished) {
-        setDeleting(true)
-      } else if (empty && deleting) {
-        setDeleting(false)
-      } else {
-        setPosition((current) => current + (deleting ? -1 : 1))
-      }
-    }, delay)
-
-    return () => window.clearTimeout(timer)
-  }, [deleting, position])
-
-  const visibleText = headlineSequence.slice(0, position)
-  const [primaryText, accentText = ''] = visibleText.split('|')
-
   return (
-    <h1 className="hero-typewriter" aria-live="polite" aria-label="Smart tech. Trusted service.">
-      {primaryText}
-      {visibleText.includes('|') && <><br /><em>{accentText}</em></>}
+    <h1 className="hero-typewriter">
+      Smart tech.<br /><em>Trusted service.</em>
     </h1>
   )
 }
@@ -80,7 +54,7 @@ const Home = () => {
             </div>
           </div>
           <div className="hero-visual hero-image-enter">
-            <div className="image-frame"><img src={storeImage} alt="Harish Computer Shop showroom" /></div>
+            <div className="image-frame"><img src={storeImage} alt="Harish Computer Shop showroom" width="960" height="640" fetchPriority="high" /></div>
             <div className="hero-badge"><strong>01</strong><span>Everything<br />in one place</span></div>
             <div className="hero-image-note"><span className="hero-image-dot" /> Visit our showroom<br /><b>Find your perfect setup</b></div>
           </div>
@@ -116,7 +90,7 @@ const Home = () => {
           <div className="category-grid">
             {categories.map(([number, title, text, image], index) => (
               <Reveal key={title} delay={index * 70}><Link to="/products" className="category-card" key={title}>
-                <img src={image} alt="" />
+                <img src={image} alt="" loading="lazy" decoding="async" />
                 <div className="category-overlay" />
                 <div className="category-content">
                   <div className="category-top"><span>{number}</span><b>↗</b></div>
@@ -134,7 +108,7 @@ const Home = () => {
           <div className="home-service-grid">
             {services.map(([number, title, text, image], index) => (
               <Reveal key={title} delay={index * 90}><Link to="/services" className="home-service-card service-motion" key={title}>
-                <img src={image} alt="" /><div className="home-service-shade" />
+                <img src={image} alt="" loading="lazy" decoding="async" /><div className="home-service-shade" />
                 <div className="home-service-content"><span>{number}</span><h3>{title}</h3><p>{text}</p><b>→</b></div>
               </Link></Reveal>
             ))}

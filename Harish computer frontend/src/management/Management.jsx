@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, lazy, Suspense, useContext, useEffect, useRef, useState } from "react";
 import {
   Navigate,
   NavLink,
@@ -31,16 +31,22 @@ import {
 } from "lucide-react";
 import { api, errorMessage, useData } from "./api";
 import { Button, Field, Heading, State } from "./ui";
-import { Dashboard } from "./pages/Dashboard";
-import { ProductForm, Products } from "./pages/Products";
-import { Billing, Invoice, InvoiceList } from "./pages/Billing";
-import { ServiceCenter } from "./pages/ServiceCenter";
-import { ResourcePage } from "./pages/Resources";
-import { Inventory, Adjustment, StockCount } from "./pages/Inventory";
-import { SettingsPage, Profile } from "./pages/Settings";
 import "./management.css";
 import DeveloperCredit from "../components/DeveloperCredit";
 import { useMediaQuery } from "./useMediaQuery";
+const Dashboard = lazy(() => import("./pages/Dashboard").then(m => ({ default: m.Dashboard })));
+const Products = lazy(() => import("./pages/Products").then(m => ({ default: m.Products })));
+const ProductForm = lazy(() => import("./pages/Products").then(m => ({ default: m.ProductForm })));
+const Billing = lazy(() => import("./pages/Billing").then(m => ({ default: m.Billing })));
+const Invoice = lazy(() => import("./pages/Billing").then(m => ({ default: m.Invoice })));
+const InvoiceList = lazy(() => import("./pages/Billing").then(m => ({ default: m.InvoiceList })));
+const ServiceCenter = lazy(() => import("./pages/ServiceCenter").then(m => ({ default: m.ServiceCenter })));
+const ResourcePage = lazy(() => import("./pages/Resources").then(m => ({ default: m.ResourcePage })));
+const Inventory = lazy(() => import("./pages/Inventory").then(m => ({ default: m.Inventory })));
+const Adjustment = lazy(() => import("./pages/Inventory").then(m => ({ default: m.Adjustment })));
+const StockCount = lazy(() => import("./pages/Inventory").then(m => ({ default: m.StockCount })));
+const SettingsPage = lazy(() => import("./pages/Settings").then(m => ({ default: m.SettingsPage })));
+const Profile = lazy(() => import("./pages/Settings").then(m => ({ default: m.Profile })));
 const Session = createContext(null);
 export const useSession = () => useContext(Session);
 const nav = [
@@ -487,6 +493,7 @@ function Shell() {
           </div>
         </header>
         <main className="m-main">
+          <Suspense fallback={<State loading />}>
           <Routes>
             <Route index element={<Dashboard />} />
             <Route path="products" element={<Products />} />
@@ -559,6 +566,7 @@ function Shell() {
               }
             />
           </Routes>
+          </Suspense>
         </main>
         <footer className="m-work-footer">
           <span>HARISH COMPUTER SHOP</span>

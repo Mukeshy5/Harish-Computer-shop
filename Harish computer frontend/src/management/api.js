@@ -23,32 +23,72 @@ export function useData(path, params = {}, live = false) {
   const [state, setState] = useState({ data: null, loading: true, error: "" });
   const [version, setVersion] = useState(0);
   const query = JSON.stringify(params);
+  const previousRequest = useRef(null);
   useEffect(() => {
+    const previous = previousRequest.current;
+    const parsed = JSON.parse(query);
+    const searchChanged = previous?.path === path && previous.q !== parsed.q;
+    previousRequest.current = { path, q: parsed.q };
     if (!path) {
       setState({ data: null, loading: false, error: "" });
       return;
     }
     const controller = new AbortController();
+    let inFlight = false;
+    let refreshPending = false;
+    let debounceTimer;
     const load = async () => {
+      if (controller.signal.aborted) return;
+      if (inFlight) {
+        refreshPending = true;
+        return;
+      }
+      inFlight = true;
       try {
         const { data } = await api.get(path, {
-          params: JSON.parse(query),
+          params: parsed,
           signal: controller.signal,
         });
-        setState({ data, loading: false, error: "" });
+        if (!controller.signal.aborted)
+          setState({ data, loading: false, error: "" });
       } catch (e) {
-        if (e.code !== "ERR_CANCELED")
+        if (!controller.signal.aborted && e.code !== "ERR_CANCELED")
           setState((s) => ({ ...s, loading: false, error: errorMessage(e) }));
+      } finally {
+        inFlight = false;
+        if (refreshPending && !controller.signal.aborted) {
+          refreshPending = false;
+          void load();
+        }
       }
     };
-    setState((s) => ({ ...s, loading: true }));
-    load();
-    const interval = live ? setInterval(load, 15000) : null;
-    if (live) window.addEventListener("hcs:data-changed", load);
+    const initialLoad = () => {
+      clearTimeout(debounceTimer);
+      setState((s) => ({ ...s, loading: true, error: "" }));
+      void load();
+    };
+    if (searchChanged) debounceTimer = setTimeout(initialLoad, 250);
+    else initialLoad();
+    const refresh = () => {
+      clearTimeout(debounceTimer);
+      void load();
+    };
+    const refreshVisible = () => {
+      if (document.visibilityState === "visible" && !inFlight) refresh();
+    };
+    const interval = live ? setInterval(refreshVisible, 15000) : null;
+    if (live) {
+      window.addEventListener("hcs:data-changed", refresh);
+      document.addEventListener("visibilitychange", refreshVisible);
+    }
     return () => {
       controller.abort();
+      clearTimeout(debounceTimer);
       clearInterval(interval);
-      if (live) window.removeEventListener("hcs:data-changed", load);
+      if (live) {
+        window.removeEventListener("hcs:data-changed", refresh);
+        document.removeEventListener("visibilitychange", refreshVisible);
+      }
     };
   }, [path, query, version, live]);
   const reload = useCallback(() => setVersion((v) => v + 1), []);
@@ -93,12 +133,12 @@ export function useCommand({ onError } = {}) {
   };
   return { execute, busy };
 }
-export const money = (n) =>
-  new Intl.NumberFormat("en-IN", {
+const currencyFormatter = new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 2,
-  }).format(Number(n || 0));
+  });
+export const money = (n) => currencyFormatter.format(Number(n || 0));
 export const date = (value) =>
   value
     ? new Date(value).toLocaleString("en-IN", {
