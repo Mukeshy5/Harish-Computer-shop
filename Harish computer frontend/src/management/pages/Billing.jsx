@@ -1514,9 +1514,11 @@ export function Invoice({ kind }) {
             </span>
             <h3>{b.number}</h3>
             <p>{date(b.date)}</p>
-            <Badge tone={b.status === "completed" ? "green" : "amber"}>
-              {b.status}
-            </Badge>
+            <span className="m-invoice-header-status">
+              <Badge tone={b.status === "completed" ? "green" : "amber"}>
+                {b.status}
+              </Badge>
+            </span>
           </div>
         </div>
         <div className="m-invoice-party">
@@ -1551,7 +1553,7 @@ export function Invoice({ kind }) {
               <strong>{b.supplierInvoice}</strong>
             </div>
           )}
-          <div>
+          <div className="m-invoice-header-payment">
             <small>PAYMENT METHOD</small>
             <strong>{b.method.toUpperCase()}</strong>
           </div>
@@ -1647,6 +1649,16 @@ export function Invoice({ kind }) {
                 <strong>{money(b.change)}</strong>
               </div>
             )}
+          </div>
+        </div>
+        <div className="m-invoice-print-payment">
+          <div>
+            <small>PAYMENT METHOD</small>
+            <strong>{b.method.toUpperCase()}</strong>
+          </div>
+          <div>
+            <small>INVOICE STATUS</small>
+            <strong>{b.status}</strong>
           </div>
         </div>
         <div className="m-invoice-footer">

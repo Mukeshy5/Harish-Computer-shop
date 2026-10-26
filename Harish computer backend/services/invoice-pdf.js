@@ -55,7 +55,7 @@ function drawInvoice(document, invoice, scale = 1) {
     .font("Helvetica-Bold")
     .fontSize(9)
     .text("CUSTOMER", margin + inset, y, {
-      width: divider - margin - inset * 2,
+      width: width - inset * 2,
     });
   document
     .font("Helvetica")
@@ -71,31 +71,25 @@ function drawInvoice(document, invoice, scale = 1) {
         .join("\n"),
       margin + inset,
       document.y + 4,
-      { width: divider - margin - inset * 2 },
+      { width: width - inset * 2 },
     );
-  const customerBottom = document.y;
-  document
-    .fontSize(9)
-    .text(`Payment: ${String(invoice.method || "").toUpperCase()}`, divider + inset, y, {
-      width: right - divider - inset * 2,
-      align: "right",
-    });
-  const tableTop = Math.max(customerBottom, document.y) + 8;
-  rule(divider, metaBottom, divider, tableTop);
+  const tableTop = document.y + 8;
   rule(margin, tableTop, right, tableTop, true);
 
   const edges = [margin, 257, 293, 375, 445, 485, right];
-  const columns = ["PRODUCT / MODEL / COVERAGE", "QTY", "RATE", "DISCOUNT", "GST", "AMOUNT"].map(
-    (label, index) => ({
-      label,
-      x: edges[index] + 4,
-      width: edges[index + 1] - edges[index] - 8,
-    }),
-  );
+  const columns = [
+    "PRODUCT / MODEL / COVERAGE", "QTY", "RATE", "DISCOUNT", "GST", "AMOUNT",
+  ].map((label, index) => ({
+    label,
+    x: edges[index] + 4,
+    width: edges[index + 1] - edges[index] - 8,
+  }));
   document.font("Helvetica-Bold").fontSize(8);
   const headerHeight = Math.max(
     22,
-    ...columns.map(column => document.heightOfString(column.label, { width: column.width }) + 12),
+    ...columns.map(
+      (column) => document.heightOfString(column.label, { width: column.width }) + 12,
+    ),
   );
   columns.forEach((column, index) =>
     document.text(column.label, column.x, tableTop + 6, {
@@ -165,7 +159,7 @@ function drawInvoice(document, invoice, scale = 1) {
   }
 
   if (invoice.lines?.length) rule(margin, y, right, y, true);
-  edges.slice(1, -1).forEach(x => rule(x, tableTop, x, y));
+  edges.slice(1, -1).forEach((x) => rule(x, tableTop, x, y));
   const summaryTop = y;
   const totals = [
     ["Subtotal", invoice.subtotal],
@@ -195,7 +189,10 @@ function drawInvoice(document, invoice, scale = 1) {
     });
     document
       .text(label, 342, y + 5, { width: 110 })
-      .text(money(value), 460, y + 5, { width: right - 460 - inset, align: "right" });
+      .text(money(value), 460, y + 5, {
+        width: right - 460 - inset,
+        align: "right",
+      });
     y += Math.max(18, labelHeight + 10, valueHeight + 10);
   });
   document.font("Helvetica").fontSize(9);
@@ -209,6 +206,25 @@ function drawInvoice(document, invoice, scale = 1) {
   y = Math.max(y, notesBottom);
   rule(divider, summaryTop, divider, y);
   rule(margin, y, right, y, true);
+  document.text(
+    `PAYMENT METHOD: ${String(invoice.method || "").toUpperCase()}`,
+    margin + inset,
+    y + 8,
+    { width: width / 2 - inset * 2 },
+  );
+  let paymentBottom = document.y + 8;
+  if (invoice.status) {
+    document.text(
+      `INVOICE STATUS: ${invoice.status}`,
+      margin + width / 2 + inset,
+      y + 8,
+      { width: width / 2 - inset * 2 },
+    );
+    paymentBottom = Math.max(paymentBottom, document.y + 8);
+    rule(margin + width / 2, y, margin + width / 2, paymentBottom);
+  }
+  y = paymentBottom;
+  rule(margin, y, right, y);
   document.text(
     `Payment status: ${invoice.due <= 0 ? "Paid" : invoice.paid > 0 ? "Partial" : "Unpaid"}`,
     margin + inset,

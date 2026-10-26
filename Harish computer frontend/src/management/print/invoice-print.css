@@ -1,5 +1,8 @@
 /* Scoped to billing invoices; shared service receipts and thermal output keep
    their existing layout. Adjacent sections own just one shared border. */
+.m-invoice-print-payment {
+  display: none;
+}
 .m-invoice-bordered:not(.thermal) {
   --invoice-grid: 1px solid #444;
   --invoice-rule: 1px solid #111;
@@ -97,6 +100,8 @@
   overflow-wrap: anywhere;
 }
 .m-invoice-bordered:not(.thermal) .m-bill-totals {
+  width: auto;
+  max-width: none;
   padding: 0;
   margin: 0;
   gap: 0;
@@ -152,6 +157,35 @@
   }
 }
 @media print {
+  .m-invoice-bordered .m-invoice-header-status,
+  .m-invoice-bordered .m-invoice-header-payment {
+    display: none;
+  }
+  .m-invoice-bordered .m-invoice-print-payment {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: var(--invoice-rule, 0.75pt solid #111);
+    color: #111;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .m-invoice-bordered .m-invoice-print-payment > div {
+    min-width: 0;
+    padding: 8px 10px;
+    overflow-wrap: anywhere;
+  }
+  .m-invoice-bordered .m-invoice-print-payment > div + div {
+    border-left: var(--invoice-grid, 0.5pt solid #444);
+  }
+  .m-invoice-bordered .m-invoice-print-payment small {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+  .m-invoice-bordered .m-invoice-print-payment strong {
+    font-size: 10px;
+  }
   .m-invoice ~ .m-history-section {
     display: none !important;
   }
