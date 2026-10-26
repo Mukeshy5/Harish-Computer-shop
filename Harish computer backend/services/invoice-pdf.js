@@ -31,31 +31,12 @@ function drawInvoice(document, invoice, scale = 1) {
   };
   drawShopHeader(document, shop);
   let y = document.y;
-  const metaTop = y - 14;
-  document
-    .font("Helvetica-Bold")
-    .fontSize(12)
-    .text("SALES INVOICE", margin + inset, y, { width: 230 });
-  document
-    .font("Helvetica")
-    .fontSize(9)
-    .text(`Invoice: ${invoice.number}`, 310, y, {
-      width: right - 310 - inset,
-      align: "right",
-    })
-    .text(
-      `Date: ${new Date(invoice.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}`,
-      { align: "right" },
-    );
-  const metaBottom = document.y + 8;
-  rule(300, metaTop, 300, metaBottom);
-  rule(margin, metaBottom, right, metaBottom);
-  y = metaBottom + 8;
+  const detailsTop = y - 14;
   document
     .font("Helvetica-Bold")
     .fontSize(9)
     .text("CUSTOMER", margin + inset, y, {
-      width: width - inset * 2,
+      width: divider - margin - inset * 2,
     });
   document
     .font("Helvetica")
@@ -71,9 +52,29 @@ function drawInvoice(document, invoice, scale = 1) {
         .join("\n"),
       margin + inset,
       document.y + 4,
-      { width: width - inset * 2 },
+      { width: divider - margin - inset * 2 },
     );
-  const tableTop = document.y + 8;
+  const customerBottom = document.y;
+  const metaX = divider + inset;
+  const metaWidth = right - divider - inset * 2;
+  document
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .text("TAX INVOICE", metaX, y, { width: metaWidth });
+  document
+    .fontSize(11)
+    .text(invoice.number, metaX, document.y + 5, { width: metaWidth });
+  document
+    .font("Helvetica")
+    .fontSize(9)
+    .text(
+      `Date: ${new Date(invoice.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}`,
+      metaX,
+      document.y + 5,
+      { width: metaWidth },
+    );
+  const tableTop = Math.max(customerBottom, document.y) + 8;
+  rule(divider, detailsTop, divider, tableTop);
   rule(margin, tableTop, right, tableTop, true);
 
   const edges = [margin, 257, 293, 375, 445, 485, right];

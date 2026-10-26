@@ -1507,55 +1507,57 @@ export function Invoice({ kind }) {
         className={`m-card m-invoice m-invoice-bordered ${thermal ? "thermal" : ""}`}
       >
         <ShopHeader details={b.printShop} gstin={shop.gstin} logo={shop.logo} />
-        <div className="m-invoice-top m-invoice-document-meta">
-          <div>
-            <span className="m-eyebrow">
-              {purchase ? "PURCHASE INVOICE" : "TAX INVOICE"}
-            </span>
-            <h3>{b.number}</h3>
-            <p>{date(b.date)}</p>
-            <span className="m-invoice-header-status">
-              <Badge tone={b.status === "completed" ? "green" : "amber"}>
-                {b.status}
-              </Badge>
-            </span>
-          </div>
-        </div>
-        <div className="m-invoice-party">
-          <div>
-            <small>{purchase ? "SUPPLIER" : "BILL TO"}</small>
-            <strong>{b.partyName}</strong>
-            <p>
-              {b.partyPhone}
-              {b.partyEmail && (
-                <>
-                  <br />
-                  {b.partyEmail}
-                </>
-              )}
-              {b.partyAddress && (
-                <>
-                  <br />
-                  {b.partyAddress}
-                </>
-              )}
-              {b.partyGstin && (
-                <>
-                  <br />
-                  GSTIN: {b.partyGstin}
-                </>
-              )}
-            </p>
-          </div>
-          {purchase && b.supplierInvoice && (
+        <div className="m-invoice-details">
+          <div className="m-invoice-top m-invoice-document-meta">
             <div>
-              <small>SUPPLIER INVOICE</small>
-              <strong>{b.supplierInvoice}</strong>
+              <span className="m-eyebrow">
+                {purchase ? "PURCHASE INVOICE" : "TAX INVOICE"}
+              </span>
+              <h3>{b.number}</h3>
+              <p>{date(b.date)}</p>
+              <span className="m-invoice-header-status">
+                <Badge tone={b.status === "completed" ? "green" : "amber"}>
+                  {b.status}
+                </Badge>
+              </span>
             </div>
-          )}
-          <div className="m-invoice-header-payment">
-            <small>PAYMENT METHOD</small>
-            <strong>{b.method.toUpperCase()}</strong>
+          </div>
+          <div className="m-invoice-party">
+            <div>
+              <small>{purchase ? "SUPPLIER" : "BILL TO"}</small>
+              <strong>{b.partyName}</strong>
+              <p>
+                {b.partyPhone}
+                {b.partyEmail && (
+                  <>
+                    <br />
+                    {b.partyEmail}
+                  </>
+                )}
+                {b.partyAddress && (
+                  <>
+                    <br />
+                    {b.partyAddress}
+                  </>
+                )}
+                {b.partyGstin && (
+                  <>
+                    <br />
+                    GSTIN: {b.partyGstin}
+                  </>
+                )}
+              </p>
+            </div>
+            {purchase && b.supplierInvoice && (
+              <div>
+                <small>SUPPLIER INVOICE</small>
+                <strong>{b.supplierInvoice}</strong>
+              </div>
+            )}
+            <div className="m-invoice-header-payment">
+              <small>PAYMENT METHOD</small>
+              <strong>{b.method.toUpperCase()}</strong>
+            </div>
           </div>
         </div>
         <Table

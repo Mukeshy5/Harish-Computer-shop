@@ -292,6 +292,30 @@
   .m-invoice-bordered:not(.thermal) .m-invoice-party > div {
     padding: 8px 10px;
   }
+  .m-invoice-bordered:not(.thermal) .m-invoice-details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 34%);
+    border-bottom: var(--invoice-rule);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-details > .m-invoice-document-meta {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    border-bottom: 0;
+    border-left: var(--invoice-grid);
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-details > .m-invoice-document-meta > div {
+    min-width: 0;
+  }
+  .m-invoice-bordered:not(.thermal) .m-invoice-details > .m-invoice-party {
+    grid-column: 1;
+    grid-row: 1;
+    border-bottom: 0;
+  }
   .m-invoice-bordered:not(.thermal) .m-table-wrap {
     overflow: visible;
   }
