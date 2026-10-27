@@ -30,6 +30,8 @@ const unique = {
   ServiceCenter: ["number", "requestKey"],
   ServiceEmailDelivery: ["requestKey"],
   Payment: ["requestKey"],
+  BillClearArchive: ["billKey"],
+  ScheduledJob: ["key"],
 };
 class Tx {
   constructor(session, data) {
@@ -97,6 +99,14 @@ class Tx {
     if (index < 0) throw new AppError(404, `${name} not found`);
     this.data[name][index] = next;
     return clone(next);
+  }
+  async updateIf(name, filter, changes) {
+    if (!this.data)
+      return models[name].findOneAndUpdate(filter, { $set: changes }, {
+        session: this.session, returnDocument: "after", runValidators: true,
+      }).lean();
+    const value = (this.data[name] || []).find(sift(filter));
+    return value ? this.save(name, { ...value, ...changes }) : null;
   }
 }
 async function connect(uri) {

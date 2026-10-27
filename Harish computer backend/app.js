@@ -13,6 +13,7 @@ const store = require("./config/store"),
 const { invoicePdf } = require("./services/invoice-pdf");
 const serviceCenter = require("./services/service-center");
 const { serviceBillPdf } = require("./services/service-center-pdf");
+const billClear = require("./services/bill-clear");
 const printShop = require("./config/print-shop.json");
 const deployment = require("./config/deployment.json");
 const { report, dateRange } = require("./services/reports");
@@ -756,6 +757,19 @@ app.post(
     ),
   ),
 );
+app.get("/api/bill-clear", permit("admin"), run(async (req, res) => {
+  res.json(await billClear.listBills(req.query));
+}));
+app.delete("/api/bill-clear/:kind/:id", permit("admin"), run(async (req, res) => {
+  res.json(await billClear.clearBill(req.params.kind, req.params.id, {
+    user: req.user, confirmation: req.body?.confirmNumber,
+  }));
+}));
+app.get("/api/bill-clear/:kind/:id/backup", permit("admin"), run(async (req, res) => {
+  const archive = await billClear.backup(req.params.kind, req.params.id);
+  const filename = `${archive.number.replace(/[^A-Za-z0-9_-]/g, "_")}-backup.json`;
+  res.attachment(filename).json(archive);
+}));
 for (const [path, kind, model] of [
   ["sales", "sale", "Sale"],
   ["purchases", "purchase", "Purchase"],
@@ -770,8 +784,8 @@ for (const [path, kind, model] of [
     run(async (req, res) => {
       const scope =
         req.user.role === "admin" || req.user.permissions?.viewAllHistory
-          ? {}
-          : { user: String(req.user._id) };
+          ? { clearedAt: null }
+          : { user: String(req.user._id), clearedAt: null };
       res.json(
         sanitize(
           page(
@@ -1071,7 +1085,7 @@ app.get(
   "/api/service-center",
   permit("admin"),
   run(async (req, res) => {
-    let records = await store.read((tx) => tx.list("ServiceCenter"));
+    let records = await store.read((tx) => tx.list("ServiceCenter", { clearedAt: null }));
     const q = String(req.query.q || "").trim().toLowerCase().slice(0, 150);
     if (q)
       records = records.filter((record) =>

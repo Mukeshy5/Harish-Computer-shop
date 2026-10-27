@@ -9,6 +9,8 @@
     "test:http": "node scripts/smoke.js",
     "setup:admin": "node scripts/create-admin.js",
     "migrate:standalone": "node scripts/migrate-standalone.js",
+    "bill-clear:preview": "node scripts/bill-clear.js",
+    "bill-clear:run": "node scripts/bill-clear.js --execute",
     "start": "node index.js",
     "dev": "node --watch index.js"
   },

@@ -88,7 +88,7 @@ Service Center bill email uses the same optional SMTP settings. A solution is st
 
 ## Integrity and costing
 
-Every invoice, stock movement, account balance change, payment, sequence allocation, and audit entry for an operation is committed together. Reusing an invoice request key with different data is rejected. Completed invoices have no update/delete endpoints. Product names, SKUs, line values, costs, customer/supplier details, and shop details are snapshotted on the invoice so later edits cannot change the original receipt.
+Every invoice, stock movement, account balance change, payment, sequence allocation, and audit entry for an operation is committed together. Reusing an invoice request key with different data is rejected. Completed invoice values cannot be edited or permanently deleted through the API; the controlled Bill Clear workflow can hide eligible bills while retaining their ledger records and recovery snapshots. Product names, SKUs, line values, costs, customer/supplier details, and shop details are snapshotted on the invoice so later edits cannot change the original receipt.
 
 Quantities are whole units. Money is rounded to two decimals at defined line boundaries; total and rate limits prevent unsupported numeric precision. Sales use each product's configured GST rate. Administrators can enter a validated alternate selling rate. Discounts are absolute line amounts, bounded by line value. Totals sent by the frontend are ignored. Purchase rates and GST rates are explicitly entered and validated server-side.
 
@@ -123,6 +123,8 @@ The suite covers admin authentication, rejection of staff credentials and sessio
 Visual browser inspection and physical A4/thermal printer output must still be checked in the target environment. The in-app browser tool was unable to initialize in this coding session; DOM tests do not establish pixel layout or printer compatibility.
 
 ## Deployment and operations
+
+Bill Clear adds admin-only, recoverable deletion after five complete days from each bill's actual creation timestamp. It is paused by default. See [Bill Clear rules, backup verification and activation](docs/BILL_CLEAR.md) before enabling it on a production database. Financial ledger records remain intact.
 
 See [deployment, backup, and restore](docs/DEPLOYMENT.md) and [API documentation](docs/API.md).
 

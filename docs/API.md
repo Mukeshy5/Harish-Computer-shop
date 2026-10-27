@@ -43,6 +43,8 @@ Contact creation supports `name, phone, address, gstin, openingBalance` (admin o
 
 ## Billing and payments
 
+Bill Clear is an additional admin-only workflow; normal bill lists exclude logically cleared bills. Financial reports and accounting references retain the original transaction. See [Bill Clear API, five-day eligibility and activation rules](BILL_CLEAR.md#api). Deletion is paused by default until backup/restore verification and server activation.
+
 Use a new `Idempotency-Key` header (UUID recommended) for each intended create/payment/return/adjustment operation. Retain exactly the same key and body after a timeout; changing the body requires a new key. Successful duplicate requests return the previously committed record and do not change stock/balances again.
 
 | Method | Route | Purpose |

@@ -188,6 +188,7 @@ async function report(tx, type, query, user) {
         ),
     ),
     recentSales: [...sales]
+      .filter((sale) => !sale.clearedAt)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 6),
     alerts: products

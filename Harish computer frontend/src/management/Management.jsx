@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Store,
+  Archive,
 } from "lucide-react";
 import { api, errorMessage, useData } from "./api";
 import { Button, Field, Heading, State } from "./ui";
@@ -41,6 +42,7 @@ const Billing = lazy(() => import("./pages/Billing").then(m => ({ default: m.Bil
 const Invoice = lazy(() => import("./pages/Billing").then(m => ({ default: m.Invoice })));
 const InvoiceList = lazy(() => import("./pages/Billing").then(m => ({ default: m.InvoiceList })));
 const ServiceCenter = lazy(() => import("./pages/ServiceCenter").then(m => ({ default: m.ServiceCenter })));
+const BillClear = lazy(() => import("./pages/BillClear").then(m => ({ default: m.BillClear })));
 const ResourcePage = lazy(() => import("./pages/Resources").then(m => ({ default: m.ResourcePage })));
 const Inventory = lazy(() => import("./pages/Inventory").then(m => ({ default: m.Inventory })));
 const Adjustment = lazy(() => import("./pages/Inventory").then(m => ({ default: m.Adjustment })));
@@ -72,7 +74,7 @@ const nav = [
       ["Categories & brands", "categories", Tags, "admin"],
     ],
   ],
-  ["MANAGEMENT", [["Activity log", "audit-logs", History, "admin"]]],
+  ["MANAGEMENT", [["Bill Clear", "bill-clear", Archive, "admin"], ["Activity log", "audit-logs", History, "admin"]]],
 ];
 export function Management() {
   const [user, setUser] = useState(null),
@@ -502,6 +504,7 @@ function Shell() {
             <Route path="sales" element={<InvoiceList kind="sale" />} />
             <Route path="sales/:id" element={<Invoice kind="sale" />} />
             <Route path="service-center" element={<ServiceCenter />} />
+            <Route path="bill-clear" element={<Gate permission="admin"><BillClear /></Gate>} />
             <Route
               path="products/new"
               element={

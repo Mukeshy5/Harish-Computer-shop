@@ -245,6 +245,9 @@ const line = new Schema(
   { _id: false },
 );
 const invoice = {
+  clearedAt: Date,
+  clearedBy: ref("User"),
+  clearSource: { type: String, enum: ["manual", "automatic"] },
   number: { type: String, required: true, unique: true },
   date: { type: Date, default: Date.now },
   party: Schema.Types.ObjectId,
@@ -313,6 +316,9 @@ schemas.InvoiceEmailDelivery = {
   sentAt: Date,
 };
 schemas.ServiceCenter = {
+  clearedAt: Date,
+  clearedBy: ref("User"),
+  clearSource: { type: String, enum: ["manual", "automatic"] },
   number: { type: String, required: true, unique: true },
   customerName: { type: String, required: true, trim: true, maxlength: 200 },
   customerEmail: {
@@ -357,6 +363,30 @@ schemas.ServiceEmailDelivery = {
   attemptedBy: ref("User", true),
   sentAt: Date,
 };
+// A recoverable bill snapshot is committed with the logical deletion. It is
+// never added to sales/payment reports, which continue to use the original ledger.
+schemas.BillClearArchive = {
+  billKey: { type: String, required: true, unique: true },
+  kind: { type: String, enum: ["sale", "purchase", "service"], required: true },
+  billId: { type: Schema.Types.ObjectId, required: true },
+  number: { type: String, required: true },
+  billCreatedAt: { type: Date, required: true },
+  deletedAt: { type: Date, required: true },
+  deletedBy: ref("User"),
+  source: { type: String, enum: ["manual", "automatic"], required: true },
+  snapshot: { type: Schema.Types.Mixed, required: true },
+  checksum: { type: String, required: true },
+};
+schemas.ScheduledJob = {
+  key: { type: String, required: true, unique: true },
+  leaseOwner: String,
+  leaseUntil: { type: Date, default: () => new Date(0) },
+  lastStartedAt: Date,
+  lastCompletedAt: Date,
+  deletedCount: { type: Number, default: 0 },
+  failedCount: { type: Number, default: 0 },
+  lastError: { type: String, maxlength: 1000, default: "" },
+};
 const models = {};
 for (const [name, shape] of Object.entries(schemas)) {
   const schema = new Schema(shape, { timestamps: true, strict: "throw" });
@@ -382,6 +412,8 @@ for (const [name, shape] of Object.entries(schemas)) {
     ].includes(name)
   )
     schema.index({ createdAt: -1 });
+  if (["Sale", "Purchase", "ServiceCenter"].includes(name))
+    schema.index({ clearedAt: 1, createdAt: 1 });
   models[name] = mongoose.models[name] || mongoose.model(name, schema);
 }
 module.exports = models;

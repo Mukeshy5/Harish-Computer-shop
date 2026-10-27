@@ -49,6 +49,8 @@ Vercel uses the committed `Harish computer frontend/vercel.json` to forward `/ap
 
 ## Backups
 
+The optional Bill Clear job is disabled by default. Follow [Bill Clear's backup verification and activation procedure](BILL_CLEAR.md) before enabling either manual or scheduled deletion. Keep the full database backup/restore checks below in addition to its per-bill recovery snapshots.
+
 Install MongoDB Database Tools and use `mongodump`/`mongorestore` (separate tools from the MongoDB server). Keep backups encrypted and outside the web root/source checkout, restrict access, and test restoration to a separate database. Never publish database archives to source control.
 
 For a local database, stop the API while taking a consistent shop backup, then run from the project directory:
