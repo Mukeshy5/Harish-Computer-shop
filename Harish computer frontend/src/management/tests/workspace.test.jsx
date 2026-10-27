@@ -395,7 +395,7 @@ describe("Admin sell workspace", () => {
   });
   it("opens saved sales invoices from the sales history", async () => {
     open(`/app/sales/${invoice._id}`);
-    await screen.findByRole("heading", { name: invoice.number, level: 1 });
+    await screen.findByRole("article", { name: "Sales invoice preview" });
     expect(screen.getByRole("button", { name: /Download invoice PDF/ })).toBeTruthy();
     expect(screen.getByRole("link", { name: /WhatsApp/ })).toBeTruthy();
   });

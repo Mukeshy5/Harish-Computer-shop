@@ -1,5 +1,37 @@
 /* Scoped to billing invoices; shared service receipts and thermal output keep
    their existing layout. Adjacent sections own just one shared border. */
+.m-invoice-controls {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.m-invoice-controls .m-invoice-screen-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.m-invoice-controls > .m-text-link {
+  min-height: 42px;
+  flex-shrink: 0;
+}
+.m-invoice-controls .m-heading-actions {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.m-invoice-controls .m-heading-actions > :is(button, a, select) {
+  min-height: 42px;
+}
 .m-invoice-print-payment {
   display: none;
 }
@@ -132,6 +164,20 @@
   overflow-wrap: anywhere;
 }
 @media screen and (max-width: 600px) {
+  .m-invoice-controls .m-heading-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex-basis: 100%;
+    width: 100%;
+  }
+  .m-invoice-controls .m-heading-actions > :is(button, a, select) {
+    min-width: 0;
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 8px;
+    white-space: normal;
+    font-size: 11px;
+  }
   .m-invoice-bordered:not(.thermal) .m-invoice-party {
     flex-wrap: wrap;
   }
@@ -222,6 +268,7 @@
   .m-invoice-bordered:not(.thermal) .m-table {
     table-layout: fixed;
     width: 100%;
+    min-width: 0;
   }
   .m-invoice-bordered:not(.thermal) .m-table th,
   .m-invoice-bordered:not(.thermal) .m-table td {

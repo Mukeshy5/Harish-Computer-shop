@@ -31,10 +31,42 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 describe("Sell and service print controls", () => {
+  it("keeps the invoice number and date in the bill without a duplicate page heading", async () => {
+    open("/app/sales/" + sale._id);
+    const article = await screen.findByRole("article", { name: "Sales invoice preview" });
+    const controls = screen.getByRole("region", { name: "Invoice actions" });
+    expect(controls.textContent).not.toContain(sale.number);
+    expect(controls.textContent).not.toContain("Sales invoice ·");
+    expect(screen.queryByRole("heading", { name: sale.number, level: 1 })).toBeNull();
+    expect(article.textContent).toContain(sale.number);
+    expect(article.textContent).toContain("24 Oct 2026");
+    expect(screen.getByRole("button", { name: "Print", exact: true })).toBeTruthy();
+  });
+  it("refits to the A4 dimensions when a phone applies print styles after beforeprint", async () => {
+    const listeners = new Set();
+    const printMedia = { matches: false, addEventListener: (_event, listener) => listeners.add(listener), removeEventListener: (_event, listener) => listeners.delete(listener) };
+    vi.spyOn(window, "matchMedia").mockImplementation(query => query === "print" ? printMedia : { matches: false, addEventListener() {}, removeEventListener() {} });
+    open("/app/sales/" + sale._id);
+    const article = await screen.findByRole("article", { name: "Sales invoice preview" });
+    Object.defineProperty(article, "scrollHeight", { configurable: true, get: () => printMedia.matches ? 1600 : 2800 });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
+      const scale = Number(article.style.getPropertyValue("--invoice-print-scale")) || 1;
+      return { height: this === article ? (article.scrollHeight + 2) * scale + (scale < 1 ? 20 : 0) : 1043, width: 718 };
+    });
+    window.dispatchEvent(new Event("beforeprint"));
+    const phoneScale = Number(article.style.getPropertyValue("--invoice-print-scale"));
+    printMedia.matches = true;
+    listeners.forEach(listener => listener());
+    expect(Number(article.style.getPropertyValue("--invoice-print-scale"))).toBeGreaterThan(phoneScale);
+    expect(article.getBoundingClientRect().height).toBeLessThanOrEqual(1043);
+    printMedia.matches = false;
+    listeners.forEach(listener => listener());
+    expect(article.style.getPropertyValue("--invoice-print-scale")).toBe("");
+  });
   it("fits a tall A4 invoice before native printing and restores the preview afterwards", async () => {
     const user = userEvent.setup();
     open("/app/sales/" + sale._id);
-    await screen.findByRole("heading", { name: sale.number, level: 1 });
+    await screen.findByRole("article", { name: "Sales invoice preview" });
     const article = document.querySelector(".m-invoice");
     Object.defineProperty(article, "scrollHeight", { configurable: true, value: 2400 });
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ height: 1043, width: 718 });
@@ -54,7 +86,7 @@ describe("Sell and service print controls", () => {
   });
   it("includes the visible frame and rounded table borders when fitting A4 output", async () => {
     open("/app/sales/" + sale._id);
-    await screen.findByRole("heading", { name: sale.number, level: 1 });
+    await screen.findByRole("article", { name: "Sales invoice preview" });
     const article = document.querySelector(".m-invoice");
     Object.defineProperty(article, "scrollHeight", { configurable: true, value: 2400 });
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
@@ -84,7 +116,7 @@ describe("Sell and service print controls", () => {
   });
   it.each(["a4", "thermal"])("preserves saved sale details and prints the common header in %s format", async format => {
     const user = userEvent.setup(); open("/app/sales/" + sale._id);
-    await screen.findByRole("heading", { name: sale.number, level: 1 });
+    await screen.findByRole("article", { name: "Sales invoice preview" });
     const article = document.querySelector(".m-invoice"); checkHeader(article);
     for (const value of [sale.partyName, sale.partyPhone, sale.partyEmail, sale.partyAddress, "Saved Laptop", "Saved Model", "Warranty", "₹118.00", "₹100.00", "₹18.00"]) expect(article.textContent).toContain(value);
     await user.selectOptions(screen.getByLabelText("Receipt format"), format);

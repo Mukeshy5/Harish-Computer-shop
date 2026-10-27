@@ -33,11 +33,24 @@ export function useA4PrintFit(thermal, pageHeightMm = 276) {
         invoice.style.setProperty("--invoice-print-scale", String(scale || 1));
       }
     };
+    // Mobile browsers can switch print media after beforeprint. Fit again once
+    // the A4 styles apply, instead of retaining measurements of the phone UI.
+    const printMedia = window.matchMedia("print");
+    const mediaChanged = () => {
+      if (printMedia.matches) fit();
+      else reset();
+    };
+    if (printMedia.addEventListener)
+      printMedia.addEventListener("change", mediaChanged);
+    else printMedia.addListener?.(mediaChanged);
     window.addEventListener("beforeprint", fit);
     window.addEventListener("afterprint", reset);
     return () => {
       window.removeEventListener("beforeprint", fit);
       window.removeEventListener("afterprint", reset);
+      if (printMedia.removeEventListener)
+        printMedia.removeEventListener("change", mediaChanged);
+      else printMedia.removeListener?.(mediaChanged);
       reset();
     };
   }, [thermal, pageHeightMm]);

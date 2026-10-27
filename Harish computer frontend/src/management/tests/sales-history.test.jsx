@@ -218,6 +218,6 @@ it("opens the saved invoice and invokes its existing print flow", async () => {
   await user.click(
     await screen.findByRole("link", { name: "Print invoice HCS-000001" }),
   );
-  await screen.findByRole("heading", { name: "HCS-000001", level: 1 });
+  await screen.findByRole("article", { name: "Sales invoice preview" });
   await waitFor(() => expect(window.print).toHaveBeenCalledOnce());
 });

@@ -1440,17 +1440,19 @@ export function Invoice({ kind }) {
   );
   return (
     <>
-      <div className="m-no-print">
+      <div
+        className="m-no-print m-invoice-controls"
+        role="region"
+        aria-label="Invoice actions"
+      >
+        <h1 className="m-invoice-screen-title">Invoice preview</h1>
         <Link
           className="m-text-link"
           to={`/app/${purchase ? "purchases" : "sales"}`}
         >
           <ArrowLeft size={15} /> Back to invoices
         </Link>
-        <Heading
-          title={b.number}
-          description={`${purchase ? "Purchase" : "Sales"} invoice · ${date(b.date)}`}
-        >
+        <div className="m-heading-actions">
           <select
             aria-label="Receipt format"
             value={thermal ? "thermal" : "a4"}
@@ -1518,7 +1520,7 @@ export function Invoice({ kind }) {
               <ShoppingCart size={16} /> Create exchange sale
             </Link>
           )}
-        </Heading>
+        </div>
       </div>
       <style media="print">
         {thermal
@@ -1528,6 +1530,7 @@ export function Invoice({ kind }) {
       <article
         ref={invoiceRef}
         className={`m-card m-invoice m-invoice-bordered ${thermal ? "thermal" : ""}`}
+        aria-label={`${purchase ? "Purchase" : "Sales"} invoice preview`}
       >
         <ShopHeader details={b.printShop} gstin={shop.gstin} logo={shop.logo} />
         <div className="m-invoice-details">
